@@ -65,11 +65,12 @@ class RoflesLibraryPlugin : Plugin<Project> {
                 "implementation"(platform(libs.androidx.compose.bom))
                 "implementation"(libs.androidx.core.ktx)
                 "implementation"(libs.androidx.activity.compose)
-                "implementation"(libs.androidx.lifecycle.runtime.ktx)
+                "implementation"(libs.bundles.lifecycle)
                 "implementation"(libs.bundles.compose)
                 "implementation"(libs.androidx.navigation3.ui)
                 "implementation"(libs.bundles.hilt)
                 "implementation"(libs.bundles.coroutines)
+                "implementation"(libs.lottie.compose)
                 "ksp"(libs.hilt.compiler)
                 "debugImplementation"(libs.androidx.compose.ui.tooling)
             }
