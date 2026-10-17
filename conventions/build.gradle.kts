@@ -7,6 +7,7 @@ group = "com.sber.rofles"
 version = "1.0.0"
 
 dependencies {
+    implementation(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
     implementation(libs.android.gradle.plugin)
     implementation(libs.kotlin.gradle.plugin)
     implementation(libs.kotlin.compose.gradle.plugin)
@@ -16,9 +17,9 @@ dependencies {
 
 gradlePlugin {
     plugins {
-        create("roflesLibrary") {
-            id = "com.sber.rofles.library"
-            implementationClass = "com.sber.rofles.RoflesLibraryPlugin"
+        create("roflesFeature") {
+            id = "com.sber.rofles.feature"
+            implementationClass = "com.sber.rofles.RoflesFeaturePlugin"
         }
     }
 }

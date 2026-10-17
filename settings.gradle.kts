@@ -22,4 +22,13 @@ dependencyResolutionManagement {
 rootProject.name = "Rofles"
 includeBuild("conventions")
 include(":app")
+include(":core")
+include(":domain")
+include(":data")
+include(":feature:solo-effect")
+include(":feature:high-five")
+include(":feature:element-picker")
+include(":feature:album")
+include(":feature:settings")
+include(":feature:demo")
  

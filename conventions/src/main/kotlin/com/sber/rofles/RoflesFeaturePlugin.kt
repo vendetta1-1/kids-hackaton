@@ -1,6 +1,7 @@
 package com.sber.rofles
 
 import com.android.build.api.dsl.LibraryExtension
+import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.configure
@@ -10,7 +11,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinAndroidProjectExtension
 
 /**
- * Convention-плагин для Android-library модулей.
+ * Convention-плагин для Android feature-модулей.
  *
  * Применяет базовый набор плагинов (Android Library, Kotlin, KSP, Hilt,
  * Compose-компилятор) и подключает все стандартные зависимости модуля:
@@ -18,21 +19,20 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinAndroidProjectExtension
  *
  * Использование в build.gradle.kts модуля:
  * ```
- * plugins { id("com.sber.rofles.library") }
+ * plugins { id("com.sber.rofles.feature") }
  * rofles { namespace = "com.sber.rofles.core" }
  * ```
  */
-class RoflesLibraryPlugin : Plugin<Project> {
+class RoflesFeaturePlugin : Plugin<Project> {
 
     override fun apply(target: Project) {
         with(target) {
             pluginManager.apply("com.android.library")
-            pluginManager.apply("org.jetbrains.kotlin.android")
             pluginManager.apply("com.google.devtools.ksp")
             pluginManager.apply("com.google.dagger.hilt.android")
             pluginManager.apply("org.jetbrains.kotlin.plugin.compose")
 
-            val rofles = extensions.create("rofles", RoflesLibraryExtension::class.java)
+            val rofles = extensions.create("rofles", RoflesFeatureExtension::class.java)
             rofles.namespace.convention("")
             rofles.compileSdk.convention(37)
             rofles.minSdk.convention(26)

@@ -37,6 +37,16 @@ android {
 }
 
 dependencies {
+    implementation(project(":core"))
+    implementation(project(":domain"))
+    implementation(project(":data"))
+    implementation(project(":feature:solo-effect"))
+    implementation(project(":feature:high-five"))
+    implementation(project(":feature:element-picker"))
+    implementation(project(":feature:album"))
+    implementation(project(":feature:settings"))
+    implementation(project(":feature:demo"))
+
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.ktx)

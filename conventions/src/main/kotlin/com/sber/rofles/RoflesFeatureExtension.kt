@@ -2,7 +2,7 @@ package com.sber.rofles
 
 import org.gradle.api.provider.Property
 
-abstract class RoflesLibraryExtension {
+abstract class RoflesFeatureExtension {
     /** Android namespace, обязательный параметр (пример: "com.sber.rofles.core"). */
     abstract val namespace: Property<String>
 
