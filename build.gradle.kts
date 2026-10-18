@@ -3,16 +3,13 @@ plugins {
     alias(libs.plugins.kotlin.compose) apply false
 }
 
-// detekt подключается только при -Pdetekt (передаётся в CI).
-// Это нужно, чтобы локальная сборка не падала: плагин не лежит в локальном кэше,
-// а скачивание из Maven Central на рабочей машине блокируется корпоративным SSL.
 val runDetekt = providers.gradleProperty("detekt").isPresent
 
 if (runDetekt) {
     subprojects {
         buildscript {
             dependencies {
-                classpath("io.gitlab.arturbosch.detekt:detekt-gradle-plugin:${libs.versions.detekt.get()}")
+                classpath("io.gitlab.arturbosch.detekt:detekt-gradle-plugin:1.23.9")
             }
         }
         apply(plugin = "io.gitlab.arturbosch.detekt")
