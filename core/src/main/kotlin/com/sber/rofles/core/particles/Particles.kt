@@ -14,6 +14,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
@@ -24,12 +25,13 @@ import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.withTransform
 import com.sber.rofles.domain.model.Element
 import kotlin.math.PI
+import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.min
 import kotlin.math.sin
 import kotlin.random.Random
 
-enum class ParticleKind { EMBER, DROP, LEAF, WIND, SPARK, SNOW }
+enum class ParticleKind { EMBER, DROP, LEAF, WIND, SPARK, SNOW, CONFETTI }
 
 val Element.particleKind: ParticleKind
     get() = when (this) {
@@ -160,6 +162,11 @@ private fun DrawScope.drawAmbient(layer: ParticleLayer, p: Particle, t: Float, a
             val x = w * p.x + sin(t * 4f + p.phase) * u * 5f
             drawSnowflake(layer.color, Offset(x, y), u * 2.2f * p.size, p.angle + t * p.spin, alpha)
         }
+        ParticleKind.CONFETTI -> {
+            val y = h * (-0.05f + t * p.speed * 1.2f)
+            val x = w * p.x + sin(t * 7f + p.phase) * u * 6f
+            drawConfetti(confettiColor(layer.color, p), Offset(x, y), u * 1.6f * p.size, p.angle + t * p.spin * 8f, t * 9f + p.phase, alpha)
+        }
     }
 }
 
@@ -185,6 +192,30 @@ private fun DrawScope.drawBurst(layer: ParticleLayer, p: Particle, t: Float, alp
             StrokeCap.Round,
         )
         ParticleKind.SNOW -> drawSnowflake(layer.color, pos, u * 2f * p.size, p.angle + t * p.spin, fade)
+        ParticleKind.CONFETTI -> drawConfetti(confettiColor(layer.color, p), pos, u * 1.7f * p.size, p.angle + t * p.spin * 8f, t * 12f + p.phase, fade)
+    }
+}
+
+private val ConfettiPalette = listOf(
+    Color(0xFF19D13B),
+    Color(0xFF3ED9FF),
+    Color(0xFFFFC93C),
+    Color(0xFFFF6FA8),
+    Color(0xFFA06BFF),
+    Color(0xFFA6FF2D),
+)
+
+private fun confettiColor(base: Color, p: Particle): Color =
+    if (base == Color.Unspecified) ConfettiPalette[((p.phase * 100).toInt()) % ConfettiPalette.size] else base
+
+private fun DrawScope.drawConfetti(color: Color, center: Offset, size: Float, angle: Float, flip: Float, alpha: Float) {
+    val squash = abs(cos(flip))
+    withTransform({
+        translate(center.x, center.y)
+        rotate(angle * 180f / PI.toFloat(), Offset.Zero)
+        scale(1f, 0.25f + 0.75f * squash, Offset.Zero)
+    }) {
+        drawRect(color.copy(alpha = alpha), topLeft = Offset(-size, -size * 0.55f), size = Size(size * 2f, size * 1.1f))
     }
 }
 

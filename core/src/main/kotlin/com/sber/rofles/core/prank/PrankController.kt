@@ -75,7 +75,7 @@ class PrankController @Inject constructor(
         fun text(key: String, default: String) = config?.text(key, default) ?: default
         BluetoothTexts(
             title = text("btTitle", "Давай дадим пять!"),
-            text = text("btText", "Включи Bluetooth — так телефоны найдут друг друга"),
+            text = text("btText", "Включи Bluetooth, чтобы телефоны нашли друг друга"),
             enable = text("btEnable", "Включить Bluetooth"),
             later = text("btLater", "Не сейчас"),
         )
