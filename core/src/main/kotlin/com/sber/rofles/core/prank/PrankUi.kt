@@ -8,12 +8,16 @@ import com.sber.rofles.domain.model.PrankEvent
 
 data class EffectUi(val id: Long, val event: PrankEvent)
 
+enum class ToastKind { CARD, BLUETOOTH }
+
 data class ToastUi(
     val id: Long,
     val caption: String,
     val title: String,
     val combo: ComboKey?,
     val isNew: Boolean,
+    val kind: ToastKind = ToastKind.CARD,
+    val capability: BleCapability? = null,
 )
 
 sealed interface SheetUi {

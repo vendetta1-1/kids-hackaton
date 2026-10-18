@@ -32,6 +32,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sber.rofles.domain.model.ElementStyle
 
+private val DisabledBrush = Brush.linearGradient(listOf(PrankPalette.disabled, PrankPalette.disabled))
+
 object PrankType {
     val headline = TextStyle(fontSize = 22.sp, lineHeight = 26.sp, fontWeight = FontWeight.Bold, color = PrankPalette.text)
     val title = TextStyle(fontSize = 17.sp, lineHeight = 22.sp, fontWeight = FontWeight.Bold, color = PrankPalette.text)
@@ -53,7 +55,7 @@ fun PrankPrimaryButton(
             .fillMaxWidth()
             .height(56.dp)
             .clip(shape)
-            .background(if (enabled) PrankPalette.primaryButton else Brush.linearGradient(listOf(PrankPalette.disabled, PrankPalette.disabled)))
+            .background(if (enabled) PrankPalette.primaryButton else DisabledBrush)
             .clickable(enabled = enabled, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {

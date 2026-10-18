@@ -62,7 +62,11 @@ fun SoloEffect(
             val center = Offset(size.width / 2f, size.height * 0.42f)
             val radius = size.minDimension * 0.42f
             drawCircle(
-                brush = Brush.radialGradient(listOf(color.copy(alpha = 0.32f * alpha), Color.Transparent), center = center, radius = radius),
+                brush = Brush.radialGradient(
+                    listOf(color.copy(alpha = 0.32f * alpha), Color.Transparent),
+                    center = center,
+                    radius = radius,
+                ),
                 radius = radius,
                 center = center,
             )

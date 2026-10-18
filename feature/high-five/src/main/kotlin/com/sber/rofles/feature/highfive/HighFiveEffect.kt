@@ -173,7 +173,14 @@ fun HighFiveEffect(
                 ) { onCardClick?.invoke() },
         ) {
             val showFront = { t() >= (CARD_IN + FLIP_END) / 2f }
-            CardBack(myColor, friendColor, Modifier.graphicsLayer { alpha = if (showFront()) 0f else 1f })
+            CardBack(
+                myColor,
+                friendColor,
+                Modifier.graphicsLayer {
+                    rotationY = 180f
+                    alpha = if (showFront()) 0f else 1f
+                },
+            )
             CardFront(
                 mine = mine,
                 friend = friend,

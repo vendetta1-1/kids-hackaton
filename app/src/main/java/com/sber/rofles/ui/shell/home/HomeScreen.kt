@@ -171,7 +171,12 @@ private fun TransferRow(onTransferClick: () -> Unit) {
                     .background(colors.blue),
                 contentAlignment = Alignment.Center,
             ) {
-                Icon(painterResource(R.drawable.sk_ic_arrow_right), contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                Icon(
+                    painterResource(R.drawable.sk_ic_arrow_right),
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(16.dp),
+                )
             }
         }
         SkCard(

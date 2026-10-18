@@ -49,6 +49,7 @@ class PrankController @Inject constructor(
     private val ids = AtomicLong()
     private var shakeJob: Job? = null
     private var configRefreshed = false
+    private var bluetoothReminded = false
 
     private val _effect = MutableStateFlow<EffectUi?>(null)
     val effect: StateFlow<EffectUi?> = _effect.asStateFlow()
@@ -137,6 +138,11 @@ class PrankController @Inject constructor(
         }
     }
 
+    fun openBluetoothSheet(capability: BleCapability) {
+        _toast.value = null
+        _sheet.value = SheetUi.Bluetooth(capability)
+    }
+
     fun dismissSheet() {
         if (_sheet.value is SheetUi.Bluetooth) markBluetoothOnboardingShown()
         _sheet.value = null
@@ -176,8 +182,22 @@ class PrankController @Inject constructor(
             PrankEvent.NeedElement -> _sheet.value = SheetUi.ElementPicker(firstTime = true)
             is PrankEvent.BluetoothUnavailable -> {
                 val askable = event.capability == BleCapability.NO_PERMISSION || event.capability == BleCapability.OFF
-                if (askable && !settingsRepository.settings.first().bluetoothOnboardingShown) {
-                    _sheet.value = SheetUi.Bluetooth(event.capability)
+                when {
+                    !askable -> Unit
+                    !settingsRepository.settings.first().bluetoothOnboardingShown ->
+                        _sheet.value = SheetUi.Bluetooth(event.capability)
+                    !bluetoothReminded -> {
+                        bluetoothReminded = true
+                        _toast.value = ToastUi(
+                            id = ids.incrementAndGet(),
+                            caption = if (event.capability == BleCapability.OFF) "Bluetooth выключен" else "Нет доступа к Bluetooth",
+                            title = "Включи, чтобы дать пять",
+                            combo = null,
+                            isNew = false,
+                            kind = ToastKind.BLUETOOTH,
+                            capability = event.capability,
+                        )
+                    }
                 }
             }
         }

@@ -229,7 +229,12 @@ private fun FramesStrip(cards: List<AlbumCard>) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Element.entries.forEach { element ->
                 val progress = AvatarFrames.progress(opened, element)
-                FrameProgress(element, progress, AvatarFrames.combosPerElement, cards.firstOrNull { it.elementA?.element == element }?.colorA)
+                FrameProgress(
+                    element,
+                    progress,
+                    AvatarFrames.combosPerElement,
+                    cards.firstOrNull { it.elementA?.element == element }?.colorA,
+                )
             }
         }
     }

@@ -192,7 +192,14 @@ private fun DrawScope.drawBurst(layer: ParticleLayer, p: Particle, t: Float, alp
             StrokeCap.Round,
         )
         ParticleKind.SNOW -> drawSnowflake(layer.color, pos, u * 2f * p.size, p.angle + t * p.spin, fade)
-        ParticleKind.CONFETTI -> drawConfetti(confettiColor(layer.color, p), pos, u * 1.7f * p.size, p.angle + t * p.spin * 8f, t * 12f + p.phase, fade)
+        ParticleKind.CONFETTI -> drawConfetti(
+            confettiColor(layer.color, p),
+            pos,
+            u * 1.7f * p.size,
+            p.angle + t * p.spin * 8f,
+            t * 12f + p.phase,
+            fade,
+        )
     }
 }
 
@@ -248,7 +255,13 @@ private fun DrawScope.drawSnowflake(color: Color, center: Offset, radius: Float,
             val a = i * PI.toFloat() / 3f
             val dx = cos(a) * radius
             val dy = sin(a) * radius
-            drawLine(color.copy(alpha = alpha), Offset(center.x - dx, center.y - dy), Offset(center.x + dx, center.y + dy), radius * 0.18f, StrokeCap.Round)
+            drawLine(
+                color.copy(alpha = alpha),
+                Offset(center.x - dx, center.y - dy),
+                Offset(center.x + dx, center.y + dy),
+                radius * 0.18f,
+                StrokeCap.Round,
+            )
         }
         drawCircle(Color.White.copy(alpha = alpha * 0.8f), radius * 0.2f, center)
     }

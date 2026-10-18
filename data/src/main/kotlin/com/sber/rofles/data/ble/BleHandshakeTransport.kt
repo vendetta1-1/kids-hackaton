@@ -15,8 +15,10 @@ import android.content.pm.PackageManager
 import android.location.LocationManager
 import android.os.Build
 import android.os.ParcelUuid
+import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.core.location.LocationManagerCompat
+import com.sber.rofles.domain.handshake.HandshakeCodec
 import com.sber.rofles.domain.model.BleCapability
 import com.sber.rofles.domain.repository.HandshakeTransport
 import com.sber.rofles.domain.repository.RawAdvert
@@ -42,7 +44,9 @@ class BleHandshakeTransport @Inject constructor(
     private var pendingData: AdvertiseData? = null
     private val scanStarts = ArrayDeque<Long>()
 
-    override fun capability(): BleCapability {
+    override fun capability(): BleCapability = resolveCapability().also { Log.d(TAG, "capability=$it") }
+
+    private fun resolveCapability(): BleCapability {
         val adapter = adapter ?: return BleCapability.UNSUPPORTED
         if (!context.packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) return BleCapability.UNSUPPORTED
         if (!hasPermissions(context)) return BleCapability.NO_PERMISSION
@@ -54,12 +58,15 @@ class BleHandshakeTransport @Inject constructor(
 
     @SuppressLint("MissingPermission")
     override fun scan(): Flow<RawAdvert> {
-        val scanner = adapter?.bluetoothLeScanner ?: return emptyFlow()
-        if (!reserveScanStart()) return emptyFlow()
+        val scanner = adapter?.bluetoothLeScanner ?: return emptyFlow<RawAdvert>().also { Log.w(TAG, "scan: no scanner") }
+        if (!reserveScanStart()) return emptyFlow<RawAdvert>().also { Log.w(TAG, "scan: throttled, too many starts in 30s") }
         return callbackFlow {
             val callback = object : ScanCallback() {
                 override fun onScanResult(callbackType: Int, result: ScanResult) {
-                    result.scanRecord?.serviceUuids?.forEach { trySend(RawAdvert(it.uuid, result.rssi)) }
+                    result.scanRecord?.serviceUuids?.forEach { uuid ->
+                        if (uuid.uuid.mostSignificantBits == HandshakeCodec.PREFIX) Log.d(TAG, "seen ${uuid.uuid} rssi=${result.rssi}")
+                        trySend(RawAdvert(uuid.uuid, result.rssi))
+                    }
                 }
 
                 override fun onBatchScanResults(results: MutableList<ScanResult>) {
@@ -67,6 +74,7 @@ class BleHandshakeTransport @Inject constructor(
                 }
 
                 override fun onScanFailed(errorCode: Int) {
+                    Log.w(TAG, "scan failed: $errorCode")
                     close()
                 }
             }
@@ -75,8 +83,16 @@ class BleHandshakeTransport @Inject constructor(
                 .setCallbackType(ScanSettings.CALLBACK_TYPE_ALL_MATCHES)
                 .setReportDelay(0)
                 .build()
-            runCatching { scanner.startScan(null, settings, callback) }.onFailure { close() }
-            awaitClose { runCatching { scanner.stopScan(callback) } }
+            runCatching { scanner.startScan(null, settings, callback) }
+                .onSuccess { Log.d(TAG, "scan started") }
+                .onFailure {
+                    Log.w(TAG, "scan start error", it)
+                    close()
+                }
+            awaitClose {
+                Log.d(TAG, "scan stopped")
+                runCatching { scanner.stopScan(callback) }
+            }
         }
     }
 
@@ -92,7 +108,8 @@ class BleHandshakeTransport @Inject constructor(
             pendingData = data
             val set = advertisingSet
             if (set != null) {
-                runCatching { set.setAdvertisingData(data) }
+                Log.d(TAG, "advertise update $uuid")
+                runCatching { set.setAdvertisingData(data) }.onFailure { Log.w(TAG, "advertise update error", it) }
                 return
             }
             if (advertisingCallback != null) return
@@ -101,9 +118,11 @@ class BleHandshakeTransport @Inject constructor(
                     synchronized(lock) {
                         if (advertisingCallback !== this) return
                         if (status != ADVERTISE_SUCCESS || advertisingSet == null) {
+                            Log.w(TAG, "advertise start failed: status=$status")
                             advertisingCallback = null
                             return
                         }
+                        Log.d(TAG, "advertise started")
                         this@BleHandshakeTransport.advertisingSet = advertisingSet
                         pendingData?.takeIf { it != data }?.let { runCatching { advertisingSet.setAdvertisingData(it) } }
                     }
@@ -117,8 +136,12 @@ class BleHandshakeTransport @Inject constructor(
                 .setTxPowerLevel(AdvertisingSetParameters.TX_POWER_HIGH)
                 .build()
             advertisingCallback = callback
+            Log.d(TAG, "advertise start $uuid")
             runCatching { advertiser.startAdvertisingSet(parameters, data, null, null, null, callback) }
-                .onFailure { advertisingCallback = null }
+                .onFailure {
+                    Log.w(TAG, "advertise start error", it)
+                    advertisingCallback = null
+                }
         }
     }
 
@@ -126,6 +149,7 @@ class BleHandshakeTransport @Inject constructor(
     override fun stop() {
         synchronized(lock) {
             val callback = advertisingCallback ?: return
+            Log.d(TAG, "advertise stop")
             runCatching { adapter?.bluetoothLeAdvertiser?.stopAdvertisingSet(callback) }
             advertisingCallback = null
             advertisingSet = null
@@ -145,6 +169,7 @@ class BleHandshakeTransport @Inject constructor(
         context.getSystemService(LocationManager::class.java)?.let(LocationManagerCompat::isLocationEnabled) ?: false
 
     companion object {
+        private const val TAG = "PrankBle"
         private const val SCAN_WINDOW_MS = 30_000L
         private const val MAX_SCAN_STARTS = 5
 

@@ -37,6 +37,7 @@ import com.sber.rofles.core.prank.BluetoothTexts
 import com.sber.rofles.core.prank.PrankController
 import com.sber.rofles.core.prank.PrankViewModel
 import com.sber.rofles.core.prank.SheetUi
+import com.sber.rofles.core.prank.ToastKind
 import com.sber.rofles.domain.model.BleCapability
 import com.sber.rofles.domain.model.ComboKey
 import com.sber.rofles.domain.model.PrankEvent
@@ -115,7 +116,15 @@ fun PrankOverlayHost(
                         durationMs = EFFECT_MS,
                         onCardClick = { openCard(event.combo.key) },
                     )
-                    is PrankEvent.Friendship -> HighFiveEffect(event.mine, null, event.title, null, false, current.id, durationMs = EFFECT_MS)
+                    is PrankEvent.Friendship -> HighFiveEffect(
+                        event.mine,
+                        null,
+                        event.title,
+                        null,
+                        false,
+                        current.id,
+                        durationMs = EFFECT_MS,
+                    )
                     else -> Unit
                 }
             }
@@ -125,7 +134,14 @@ fun PrankOverlayHost(
                 PrankToast(
                     toast = current,
                     onDismiss = { controller.dismissToast(current.id) },
-                    onClick = { openCard(current.combo) },
+                    onClick = {
+                        val capability = current.capability
+                        if (current.kind == ToastKind.BLUETOOTH && capability != null) {
+                            controller.openBluetoothSheet(capability)
+                        } else {
+                            openCard(current.combo)
+                        }
+                    },
                     modifier = Modifier.align(Alignment.TopCenter),
                 )
             }

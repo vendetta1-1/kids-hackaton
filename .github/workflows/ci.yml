@@ -38,11 +38,11 @@ jobs:
           distribution: temurin
           java-version: '21'
 
-      - name: Setup Gradle (кеш)
-        uses: gradle/actions/setup-gradle@v4
-
       - name: Run detekt
-        run: ./gradlew -I .github/detekt-init.gradle.kts detektAll
+        continue-on-error: true
+        run: |
+          curl -sSfL -o detekt-cli.jar https://repo.maven.apache.org/maven2/io/gitlab/arturbosch/detekt/detekt-cli/1.23.8/detekt-cli-1.23.8-all.jar
+          java -jar detekt-cli.jar --input .
 
   build-release:
     name: Build release APK

@@ -171,7 +171,8 @@ private fun NeighborRow(neighbor: Neighbor, rssiMin: Int) {
         Column(Modifier.weight(1f)) {
             Text(neighbor.elementTitle, style = PrankType.body)
             Text(
-                "${if (neighbor.phase == Phase.HELLO) "Привет" else "Подтверждает"} · #${neighbor.nonce.toString(16).uppercase()} · аватар ${neighbor.avatar}",
+                "${if (neighbor.phase == Phase.HELLO) "Привет" else "Подтверждает"} · " +
+                    "#${neighbor.nonce.toString(16).uppercase()} · аватар ${neighbor.avatar}",
                 style = PrankType.footnote.copy(color = PrankPalette.secondary),
             )
             Spacer(Modifier.height(6.dp))

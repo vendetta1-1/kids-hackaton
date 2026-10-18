@@ -98,7 +98,11 @@ internal fun NewFrameSheet(style: ElementStyle, isMine: Boolean, onDone: () -> U
 private fun ElementRow(style: ElementStyle) {
     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         Element.entries.forEach { other ->
-            Image(painterResource(PrankArt.combo(ComboKey.of(style.element, other))), contentDescription = null, modifier = Modifier.size(40.dp))
+            Image(
+                painterResource(PrankArt.combo(ComboKey.of(style.element, other))),
+                contentDescription = null,
+                modifier = Modifier.size(40.dp),
+            )
         }
     }
 }

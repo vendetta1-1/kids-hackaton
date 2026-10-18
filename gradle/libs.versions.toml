@@ -16,7 +16,7 @@ navigation3 = "1.2.0"
 lottie = "6.7.1"
 datastore = "1.1.1"
 mockk = "1.14.11"
-detekt = "1.23.9"
+detekt = "1.23.8"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }

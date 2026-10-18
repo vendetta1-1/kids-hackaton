@@ -118,7 +118,13 @@ internal fun ComboCardScreen(
                         .background(Brush.linearGradient(listOf(colorA.copy(alpha = 0.22f), Color.White, colorB.copy(alpha = 0.22f)))),
                     contentAlignment = Alignment.Center,
                 ) {
-                    ParticleField(layers, progress = { loop.value }, fade = false, seed = card.key.id.hashCode(), modifier = Modifier.fillMaxSize())
+                    ParticleField(
+                        layers,
+                        progress = { loop.value },
+                        fade = false,
+                        seed = card.key.id.hashCode(),
+                        modifier = Modifier.fillMaxSize(),
+                    )
                     Image(
                         painterResource(PrankArt.combo(card.key)),
                         contentDescription = card.title,
@@ -135,7 +141,11 @@ internal fun ComboCardScreen(
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     card.elementA?.let { ElementChip(it) }
-                    Text("+", style = PrankType.title.copy(color = PrankPalette.secondary), modifier = Modifier.align(Alignment.CenterVertically))
+                    Text(
+                        "+",
+                        style = PrankType.title.copy(color = PrankPalette.secondary),
+                        modifier = Modifier.align(Alignment.CenterVertically),
+                    )
                     card.elementB?.let { ElementChip(it) }
                 }
             }

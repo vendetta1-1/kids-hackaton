@@ -129,7 +129,12 @@ fun TransferScreen(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
                             destinations.forEachIndexed { index, d ->
-                                DestinationChip(d, selected = index == selected, onClick = { selected = index }, modifier = Modifier.weight(1f))
+                                DestinationChip(
+                                    d,
+                                    selected = index == selected,
+                                    onClick = { selected = index },
+                                    modifier = Modifier.weight(1f),
+                                )
                             }
                         }
                     }
@@ -207,7 +212,12 @@ private fun DestinationChip(d: Destination, selected: Boolean, onClick: () -> Un
             Text(d.badge, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
         }
         Column {
-            Text(d.title, style = SberKids.typography.footnote.copy(fontWeight = FontWeight.SemiBold), color = colors.textPrimary, maxLines = 1)
+            Text(
+                d.title,
+                style = SberKids.typography.footnote.copy(fontWeight = FontWeight.SemiBold),
+                color = colors.textPrimary,
+                maxLines = 1,
+            )
             Text(d.subtitle, style = SberKids.typography.footnote, color = colors.textSecondary, maxLines = 1)
         }
     }

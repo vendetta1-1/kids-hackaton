@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import com.sber.rofles.core.prank.PrankArt
 import com.sber.rofles.core.prank.PrankPalette
 import com.sber.rofles.core.prank.PrankType
+import com.sber.rofles.core.prank.ToastKind
 import com.sber.rofles.core.prank.ToastUi
 import kotlinx.coroutines.delay
 
@@ -85,7 +86,13 @@ fun PrankToast(
                 contentAlignment = Alignment.Center,
             ) {
                 Image(
-                    painterResource(toast.combo?.let(PrankArt::combo) ?: PrankArt.highFive),
+                    painterResource(
+                        if (toast.kind == ToastKind.BLUETOOTH) {
+                            PrankArt.bluetooth
+                        } else {
+                            toast.combo?.let(PrankArt::combo) ?: PrankArt.highFive
+                        },
+                    ),
                     contentDescription = null,
                     modifier = Modifier.size(44.dp),
                 )
@@ -100,7 +107,7 @@ fun PrankToast(
             }
             if (onClick != null) {
                 Text(
-                    "Открыть",
+                    if (toast.kind == ToastKind.BLUETOOTH) "Включить" else "Открыть",
                     style = PrankType.footnote.copy(color = PrankPalette.green),
                     modifier = Modifier
                         .background(PrankPalette.greenSoft, CircleShape)
