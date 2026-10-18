@@ -5,6 +5,10 @@ import kotlinx.coroutines.flow.Flow
 /** Детектор тряски (сенсор). Реализация — в :data или :core. */
 interface ShakeController {
     val shakes: Flow<Unit>
+
+    /** Порог срабатывания (чувствительность из конфига). */
+    var threshold: Float
+
     fun start()
     fun stop()
 }

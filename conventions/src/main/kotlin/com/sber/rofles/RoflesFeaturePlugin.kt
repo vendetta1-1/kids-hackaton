@@ -4,9 +4,11 @@ import com.android.build.api.dsl.LibraryExtension
 import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.dependencies
+import org.gradle.kotlin.dsl.getByType
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinAndroidProjectExtension
 
@@ -61,18 +63,20 @@ class RoflesFeaturePlugin : Plugin<Project> {
                 }
             }
 
+            val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
+
             dependencies {
-                "implementation"(platform(libs.androidx.compose.bom))
-                "implementation"(libs.androidx.core.ktx)
-                "implementation"(libs.androidx.activity.compose)
-                "implementation"(libs.bundles.lifecycle)
-                "implementation"(libs.bundles.compose)
-                "implementation"(libs.androidx.navigation3.ui)
-                "implementation"(libs.bundles.hilt)
-                "implementation"(libs.bundles.coroutines)
-                "implementation"(libs.lottie.compose)
-                "ksp"(libs.hilt.compiler)
-                "debugImplementation"(libs.androidx.compose.ui.tooling)
+                "implementation"(platform(libs.findLibrary("androidx-compose-bom").get().get()))
+                "implementation"(libs.findLibrary("androidx-core-ktx").get().get())
+                "implementation"(libs.findLibrary("androidx-activity-compose").get().get())
+                "implementation"(libs.findBundle("lifecycle").get())
+                "implementation"(libs.findBundle("compose").get())
+                "implementation"(libs.findLibrary("androidx-navigation3-ui").get().get())
+                "implementation"(libs.findBundle("hilt").get())
+                "implementation"(libs.findBundle("coroutines").get())
+                "implementation"(libs.findLibrary("lottie-compose").get().get())
+                "ksp"(libs.findLibrary("hilt-compiler").get().get())
+                "debugImplementation"(libs.findLibrary("androidx-compose-ui-tooling").get().get())
             }
         }
     }

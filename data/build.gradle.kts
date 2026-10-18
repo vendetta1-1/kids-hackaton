@@ -8,4 +8,5 @@ rofles {
 
 dependencies {
     implementation(project(":domain"))
+    implementation(libs.androidx.datastore.preferences)
 }

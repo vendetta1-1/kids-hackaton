@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.hilt)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -48,10 +50,12 @@ dependencies {
     implementation(project(":feature:demo"))
 
     implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.activity.compose)
-    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.navigation3.ui)
+    implementation(libs.bundles.androidx.base)
     implementation(libs.bundles.lifecycle)
     implementation(libs.bundles.compose)
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
     testImplementation(libs.bundles.test.unit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.bundles.compose.android.test)
