@@ -39,6 +39,8 @@ internal object ShareCard {
     private const val TEXT_COLOR = 0xFF000000.toInt()
     private const val SECONDARY_TEXT_COLOR = 0xFF7D868C.toInt()
     private const val BRAND_COLOR = 0xFF19D13B.toInt()
+    private const val TITLE_SIZE = 104f
+    private const val TITLE_SIZE_SMALL = 84f
 
     fun createFile(context: Context, content: ShareContent): File {
         val directory = File(context.cacheDir, "share").apply { mkdirs() }
@@ -83,28 +85,32 @@ internal object ShareCard {
         val card = RectF(PADDING / 2, PADDING / 2, size - PADDING / 2, size - PADDING / 2)
         canvas.drawRoundRect(card, 72f, 72f, Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xF2FFFFFF.toInt() })
 
-        BitmapFactory.decodeResource(context.resources, content.art)?.let { art ->
-            val artSize = size * 0.5f
-            val left = (size - artSize) / 2f
-            val top = PADDING * 1.1f
-            canvas.drawBitmap(art, null, RectF(left, top, left + artSize, top + artSize), Paint(Paint.FILTER_BITMAP_FLAG))
-            art.recycle()
-        }
-
         val leadPaint = textPaint(52f, Typeface.NORMAL, SECONDARY_TEXT_COLOR)
-        val titlePaint = textPaint(104f, Typeface.BOLD, TEXT_COLOR)
         val brandPaint = textPaint(48f, Typeface.BOLD, BRAND_COLOR)
         val width = (size - PADDING * 2).toInt()
 
-        val lead = layout(content.lead, leadPaint, width)
-        val title = layout(content.title.replace("-", "-\u200B"), titlePaint, width, maxLines = 2)
-        var top = size * 0.6f
-        canvas.drawLayout(lead, PADDING, top)
-        top += lead.height + 8f
-        canvas.drawLayout(title, PADDING, top)
-
         val brand = layout(content.brand, brandPaint, width)
-        canvas.drawLayout(brand, PADDING, size - PADDING - brand.height)
+        val brandTop = size - PADDING - brand.height
+        canvas.drawLayout(brand, PADDING, brandTop)
+
+        val titleText = content.title.replace("-", "-\u200B")
+        val title = layout(titleText, textPaint(TITLE_SIZE, Typeface.BOLD, TEXT_COLOR), width)
+            .takeIf { it.lineCount == 1 }
+            ?: layout(titleText, textPaint(TITLE_SIZE_SMALL, Typeface.BOLD, TEXT_COLOR), width)
+        val titleTop = brandTop - 32f - title.height
+        canvas.drawLayout(title, PADDING, titleTop)
+
+        val lead = layout(content.lead, leadPaint, width)
+        val leadTop = titleTop - 8f - lead.height
+        canvas.drawLayout(lead, PADDING, leadTop)
+
+        BitmapFactory.decodeResource(context.resources, content.art)?.let { art ->
+            val top = PADDING * 1.1f
+            val artSize = minOf(size * 0.5f, leadTop - 24f - top)
+            val left = (size - artSize) / 2f
+            canvas.drawBitmap(art, null, RectF(left, top, left + artSize, top + artSize), Paint(Paint.FILTER_BITMAP_FLAG))
+            art.recycle()
+        }
         return bitmap
     }
 
