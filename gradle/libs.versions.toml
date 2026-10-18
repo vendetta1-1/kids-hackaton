@@ -88,6 +88,8 @@ test-android = [
 ]
 test-unit = [
     "junit",
+    "kotlinx-coroutines-test",
+    "mockk",
 ]
 
 [plugins]
