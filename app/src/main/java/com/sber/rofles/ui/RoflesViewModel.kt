@@ -3,6 +3,7 @@ package com.sber.rofles.ui
 import androidx.lifecycle.ViewModel
 import com.sber.rofles.core.effect.EffectState
 import com.sber.rofles.core.effect.PrikolCoordinator
+import com.sber.rofles.core.effect.PrikolScreen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
@@ -17,6 +18,11 @@ class RoflesViewModel @Inject constructor(
 
     init {
         coordinator.start()
+    }
+
+    /** Сообщаем координатору текущий экран (для ScreenGuard). */
+    fun setScreen(screen: PrikolScreen) {
+        coordinator.currentScreen = screen
     }
 
     fun dismissEffect() {

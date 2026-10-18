@@ -2,7 +2,7 @@ plugins {
     id("com.sber.rofles.feature")
 }
 
-rofles {
+android {
     namespace = "com.sber.rofles.feature.elementpicker"
 }
 

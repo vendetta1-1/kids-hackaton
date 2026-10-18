@@ -14,6 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.ui.NavDisplay
+import com.sber.rofles.core.effect.EffectOverlayHost
+import com.sber.rofles.core.effect.PrikolScreen
 import com.sber.rofles.feature.album.AlbumScreen
 import com.sber.rofles.feature.demo.DemoScreen
 import com.sber.rofles.feature.elementpicker.ElementPickerScreen
@@ -39,6 +41,12 @@ fun RoflesAppContent(viewModel: RoflesViewModel = viewModel()) {
 
         val backStack = remember { mutableStateListOf<Route>(Route.MAIN) }
 
+        // Сообщаем координатору текущий экран — чтобы ScreenGuard решал, где прикол работает.
+        val currentRoute = backStack.lastOrNull() ?: Route.MAIN
+        LaunchedEffect(currentRoute) {
+            viewModel.setScreen(currentRoute.toPrikolScreen())
+        }
+
         Box(Modifier.fillMaxSize()) {
             NavDisplay(
                 backStack = backStack,
@@ -63,13 +71,21 @@ fun RoflesAppContent(viewModel: RoflesViewModel = viewModel()) {
 
             // Глобальный оверлей-эффект поверх навигации.
             effect?.let { current ->
-                Box(
+                EffectOverlayHost(
+                    animation = current.animationUrl,
+                    onDone = { viewModel.dismissEffect() },
                     modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text("ЭФФЕКТ: ${current.kind}")
-                }
+                )
             }
         }
     }
+}
+
+/**
+ * Сейчас все экраны прикола безопасны. Когда появятся денежные
+ * (перевод/QR/деталка карты) — замапим их на PrikolScreen.MONEY_TRANSFER.
+ */
+private fun Route.toPrikolScreen(): PrikolScreen = when (this) {
+    Route.MAIN, Route.SOLO, Route.HIGH_FIVE, Route.ELEMENT_PICKER,
+    Route.ALBUM, Route.SETTINGS, Route.DEMO -> PrikolScreen.MAIN
 }

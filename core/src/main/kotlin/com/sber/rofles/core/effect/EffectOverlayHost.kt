@@ -15,18 +15,23 @@ import kotlinx.coroutines.delay
 /**
  * Глобальный оверлей-хост эффекта. Рисуется поверх любого экрана,
  * касания проходят насквозь (Box без обработки кликов).
+ *
+ * @param animation URL (LottieCompositionSpec.Url) или JSON-строка анимации.
  */
 @Composable
 fun EffectOverlayHost(
-    animationJson: String?,
+    animation: String?,
     onDone: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    if (animationJson == null) return
+    if (animation == null) return
 
-    val composition by rememberLottieComposition(
-        LottieCompositionSpec.JsonString(animationJson)
-    )
+    val spec = if (animation.startsWith("http")) {
+        LottieCompositionSpec.Url(animation)
+    } else {
+        LottieCompositionSpec.JsonString(animation)
+    }
+    val composition by rememberLottieComposition(spec)
 
     LaunchedEffect(composition) {
         // Эффект живёт ~3 секунды, потом закрываемся.

@@ -1,6 +1,7 @@
 package com.sber.rofles.core.effect
 
 import com.sber.rofles.core.bluetooth.HighFiveCoordinator
+import com.sber.rofles.domain.model.Combination
 import com.sber.rofles.domain.repository.ConfigRepository
 import com.sber.rofles.domain.repository.HighFiveRepository
 import kotlinx.coroutines.CoroutineScope
@@ -29,6 +30,9 @@ class PrikolCoordinator @Inject constructor(
     private val highFive: HighFiveCoordinator,
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+    /** Номер аватарки пользователя. Пока заглушка, позже из профиля. */
+    private val avatarNumber: Int = 0
 
     private val _effect = MutableStateFlow<EffectState?>(null)
     val effect: StateFlow<EffectState?> = _effect.asStateFlow()
@@ -64,21 +68,46 @@ class PrikolCoordinator @Inject constructor(
 
     private fun handleShake() {
         scope.launch {
-            val screen = _currentScreen.value
-            if (!ScreenGuard.allows(screen) || _effect.value != null) return@launch
+            // Новая тряска во время эффекта игнорируется.
+            if (_effect.value != null) return@launch
+            _effect.value = processShake()
+        }
+    }
 
-            val enabled = configRepository.config().first().enabled
-                && repository.isEnabled().first()
-            if (!enabled) return@launch
+    /**
+     * Решение «соло или дай пять» для текущей тряски. Вынесено отдельно,
+     * чтобы покрыть юнит-тестами.
+     */
+    internal suspend fun processShake(): EffectState? {
+        val screen = _currentScreen.value
+        if (!ScreenGuard.allows(screen)) return null
 
-            val element = repository.currentElement().first() ?: return@launch
+        val enabled = configRepository.config().first().enabled
+            && repository.isEnabled().first()
+        if (!enabled) return null
 
-            val peer = highFive.peerPresent.first()
-            _effect.value = if (peer) {
-                EffectState(kind = EffectKind.HIGH_FIVE, element = element)
-            } else {
-                EffectState(kind = EffectKind.SOLO, element = element)
-            }
+        val element = repository.currentElement().first() ?: return null
+        val config = configRepository.config().first()
+        val animationUrl = config.elements.firstOrNull { it.element == element }?.lottieUrl
+
+        // Пробуем рукопожатие: если рядом друг — «дай пять».
+        val peer = highFive.shakeHands(element, avatarNumber)
+
+        return if (peer != null && peer.peerElement != null) {
+            val combination = Combination(element, peer.peerElement)
+            repository.addCard(combination)
+            EffectState(
+                kind = EffectKind.HIGH_FIVE,
+                element = element,
+                combination = combination,
+                animationUrl = animationUrl,
+            )
+        } else {
+            EffectState(
+                kind = EffectKind.SOLO,
+                element = element,
+                animationUrl = animationUrl,
+            )
         }
     }
 

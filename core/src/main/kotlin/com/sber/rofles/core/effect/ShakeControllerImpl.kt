@@ -29,7 +29,7 @@ class ShakeControllerImpl @Inject constructor(
     override val shakes: Flow<Unit> = _shakes.asSharedFlow()
 
     /** Порог тряски. Чувствительность из конфига будет передаваться сюда. */
-    var threshold: Float = 25f
+    override var threshold: Float = 25f
 
     override fun start() {
         accelerometer?.let {

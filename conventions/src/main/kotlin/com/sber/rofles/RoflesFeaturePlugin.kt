@@ -35,12 +35,10 @@ class RoflesFeaturePlugin : Plugin<Project> {
             pluginManager.apply("org.jetbrains.kotlin.plugin.compose")
 
             val rofles = extensions.create("rofles", RoflesFeatureExtension::class.java)
-            rofles.namespace.convention("")
             rofles.compileSdk.convention(37)
             rofles.minSdk.convention(26)
 
             extensions.configure<LibraryExtension>("android") {
-                namespace = rofles.namespace.get()
                 compileSdk = rofles.compileSdk.get()
 
                 defaultConfig {
