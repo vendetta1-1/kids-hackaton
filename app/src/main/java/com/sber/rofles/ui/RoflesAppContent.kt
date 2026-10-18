@@ -1,8 +1,10 @@
 package com.sber.rofles.ui
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -22,13 +24,21 @@ import com.sber.rofles.feature.elementpicker.ElementPickerScreen
 import com.sber.rofles.feature.highfive.HighFiveScreen
 import com.sber.rofles.feature.settings.SettingsScreen
 import com.sber.rofles.feature.solo.SoloEffectScreen
-import com.sber.rofles.ui.theme.RoflesTheme
+import com.sber.rofles.ui.shell.components.SkTab
+import com.sber.rofles.ui.shell.components.SkTabBar
+import com.sber.rofles.ui.shell.content.ContentScreen
+import com.sber.rofles.ui.shell.home.HomeScreen
+import com.sber.rofles.ui.shell.piggy.PiggyBanksScreen
+import com.sber.rofles.ui.shell.settings.SoundsScreen
+import com.sber.rofles.ui.shell.tasks.TasksScreen
+import com.sber.rofles.ui.shell.transfer.TransferScreen
+import com.sber.rofles.ui.theme.SberKidsTheme
 import kotlinx.coroutines.delay
 
-/** Корневой UI: тема, навигация Nav3 и глобальный оверлей эффекта. */
+/** Корневой UI: тема, навигация Nav3, таббар оболочки и глобальный оверлей эффекта. */
 @Composable
 fun RoflesAppContent(viewModel: RoflesViewModel = viewModel()) {
-    RoflesTheme {
+    SberKidsTheme {
         val effect by viewModel.effect.collectAsState()
 
         // Эффект живёт ~3 с, потом гасим.
@@ -40,6 +50,15 @@ fun RoflesAppContent(viewModel: RoflesViewModel = viewModel()) {
         }
 
         val backStack = remember { mutableStateListOf<Route>(Route.MAIN) }
+        val navigate: (Route) -> Unit = { backStack.add(it) }
+        val back: () -> Unit = { if (backStack.size > 1) backStack.removeLastOrNull() }
+
+        // Вкладки не копятся в стеке: Главный всегда снизу, сверху максимум одна другая вкладка.
+        val selectTab: (SkTab) -> Unit = { tab ->
+            backStack.clear()
+            backStack.add(Route.MAIN)
+            if (tab != SkTab.HOME) backStack.add(tab.route)
+        }
 
         // Сообщаем координатору текущий экран — чтобы ScreenGuard решал, где прикол работает.
         val currentRoute = backStack.lastOrNull() ?: Route.MAIN
@@ -50,14 +69,20 @@ fun RoflesAppContent(viewModel: RoflesViewModel = viewModel()) {
         Box(Modifier.fillMaxSize()) {
             NavDisplay(
                 backStack = backStack,
-                onBack = { backStack.removeLastOrNull() },
+                onBack = back,
                 entryProvider = { key ->
                     when (key) {
                         Route.MAIN -> NavEntry(key) {
-                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                Text("Rofles — главный экран (заглушка)")
-                            }
+                            HomeScreen(
+                                onAvatarClick = { navigate(Route.SOUNDS) },
+                                onTransferClick = { navigate(Route.TRANSFER) },
+                            )
                         }
+                        Route.PIGGY_BANKS -> NavEntry(key) { PiggyBanksScreen(onAvatarClick = { navigate(Route.SOUNDS) }) }
+                        Route.TASKS -> NavEntry(key) { TasksScreen(onAvatarClick = { navigate(Route.SOUNDS) }) }
+                        Route.CONTENT -> NavEntry(key) { ContentScreen(onAvatarClick = { navigate(Route.SOUNDS) }) }
+                        Route.TRANSFER -> NavEntry(key) { TransferScreen(onBack = back) }
+                        Route.SOUNDS -> NavEntry(key) { SoundsScreen(onBack = back) }
 
                         Route.SOLO -> NavEntry(key) { SoloEffectScreen() }
                         Route.HIGH_FIVE -> NavEntry(key) { HighFiveScreen() }
@@ -68,6 +93,17 @@ fun RoflesAppContent(viewModel: RoflesViewModel = viewModel()) {
                     }
                 },
             )
+
+            // Плавающее нижнее меню — только на вкладках.
+            val tab = currentRoute.tab
+            AnimatedVisibility(
+                visible = tab != null,
+                enter = slideInVertically { it },
+                exit = slideOutVertically { it },
+                modifier = Modifier.align(Alignment.BottomCenter),
+            ) {
+                SkTabBar(selected = tab ?: SkTab.HOME, onSelect = selectTab)
+            }
 
             // Глобальный оверлей-эффект поверх навигации.
             effect?.let { current ->
@@ -81,11 +117,14 @@ fun RoflesAppContent(viewModel: RoflesViewModel = viewModel()) {
     }
 }
 
-/**
- * Сейчас все экраны прикола безопасны. Когда появятся денежные
- * (перевод/QR/деталка карты) — замапим их на PrikolScreen.MONEY_TRANSFER.
- */
+/** Экран для ScreenGuard: на «Скинуть денег» прикол запрещён. */
 private fun Route.toPrikolScreen(): PrikolScreen = when (this) {
-    Route.MAIN, Route.SOLO, Route.HIGH_FIVE, Route.ELEMENT_PICKER,
+    Route.MAIN -> PrikolScreen.MAIN
+    Route.PIGGY_BANKS -> PrikolScreen.PIGGYBANK
+    Route.TASKS -> PrikolScreen.TASKS
+    Route.CONTENT -> PrikolScreen.CONTENT
+    Route.SOUNDS -> PrikolScreen.PROFILE
+    Route.TRANSFER -> PrikolScreen.MONEY_TRANSFER
+    Route.SOLO, Route.HIGH_FIVE, Route.ELEMENT_PICKER,
     Route.ALBUM, Route.SETTINGS, Route.DEMO -> PrikolScreen.MAIN
 }
