@@ -55,14 +55,17 @@ class PrankControllerTest {
     private val haptics = mockk<Haptics>()
     private val clock = mockk<Clock>()
 
+    private val configFlow = MutableStateFlow<PrankConfig?>(null)
+    private val myElementFlow = MutableStateFlow<MyElement?>(null)
+
     private lateinit var controller: PrankController
 
     @Before
     fun setUp() {
         Dispatchers.setMain(UnconfinedTestDispatcher())
         every { clock.today() } returns today
-        every { configRepository.config } returns MutableStateFlow(null)
-        every { myElementRepository.observe() } returns flowOf(null)
+        every { configRepository.config } returns configFlow
+        every { myElementRepository.observe() } returns myElementFlow
         controller = PrankController(
             configRepository = configRepository,
             settingsRepository = settingsRepository,
@@ -275,8 +278,8 @@ class PrankControllerTest {
 
     @Test
     fun `picker reflects current element and changeability`() = runTest {
-        every { configRepository.config } returns MutableStateFlow(config())
-        every { myElementRepository.observe() } returns flowOf(MyElement(Element.FIRE, today.minusDays(1)))
+        configFlow.value = config()
+        myElementFlow.value = MyElement(Element.FIRE, today.minusDays(1))
 
         val picker = controller.picker.value!!
         assertEquals(Element.FIRE, picker.current)

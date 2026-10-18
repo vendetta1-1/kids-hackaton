@@ -70,7 +70,7 @@ class AlbumViewModelTest {
     private fun viewModel() = AlbumViewModel(albumRepository, configRepository, clock)
 
     private fun TestScope.current(vm: AlbumViewModel): AlbumUiState {
-        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.state.collect() }
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.state.collect { } }
         return vm.state.value
     }
 
