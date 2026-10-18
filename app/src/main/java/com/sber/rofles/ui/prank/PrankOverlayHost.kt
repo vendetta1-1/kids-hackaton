@@ -46,6 +46,7 @@ fun PrankOverlayHost(
     controller: PrankController,
     screen: PrikolScreen,
     modifier: Modifier = Modifier,
+    shakeEnabled: Boolean = true,
     onOpenCard: (ComboKey?) -> Unit = {},
     content: @Composable () -> Unit,
 ) {
@@ -60,7 +61,7 @@ fun PrankOverlayHost(
         onOpenCard(key)
     }
 
-    val allowed = ScreenGuard.allows(screen) && !WindowInsets.isImeVisible
+    val allowed = shakeEnabled && ScreenGuard.allows(screen) && !WindowInsets.isImeVisible
     val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(allowed, lifecycleOwner) {
         if (!allowed) return@LaunchedEffect

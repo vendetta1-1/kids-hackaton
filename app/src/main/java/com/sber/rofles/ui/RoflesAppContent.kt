@@ -59,9 +59,21 @@ fun RoflesAppContent(prank: PrankViewModel = viewModel()) {
             if (backStack.lastOrNull() != Route.ALBUM) navigate(Route.ALBUM)
         }
 
+        val logoTaps = remember { mutableListOf<Long>() }
+        val onLogoTap: () -> Unit = {
+            val now = System.currentTimeMillis()
+            logoTaps.removeAll { now - it > SECRET_TAPS_WINDOW_MS }
+            logoTaps += now
+            if (logoTaps.size >= SECRET_TAPS) {
+                logoTaps.clear()
+                navigate(Route.DEMO)
+            }
+        }
+
         PrankOverlayHost(
             controller = prank.controller,
             screen = currentRoute.toPrikolScreen(),
+            shakeEnabled = currentRoute != Route.DEMO,
             onOpenCard = openCard,
         ) {
             Box(Modifier.fillMaxSize()) {
@@ -90,7 +102,7 @@ fun RoflesAppContent(prank: PrankViewModel = viewModel()) {
                                 )
                             }
                             Route.SETTINGS -> NavEntry(key) { SettingsScreen() }
-                            Route.DEMO -> NavEntry(key) { DemoScreen() }
+                            Route.DEMO -> NavEntry(key) { DemoScreen(onBack = back) }
                         }
                     },
                 )
@@ -102,12 +114,15 @@ fun RoflesAppContent(prank: PrankViewModel = viewModel()) {
                     exit = slideOutVertically { it },
                     modifier = Modifier.align(Alignment.BottomCenter),
                 ) {
-                    SkTabBar(selected = tab ?: SkTab.HOME, onSelect = selectTab)
+                    SkTabBar(selected = tab ?: SkTab.HOME, onSelect = selectTab, onAssistantClick = onLogoTap)
                 }
             }
         }
     }
 }
+
+private const val SECRET_TAPS = 5
+private const val SECRET_TAPS_WINDOW_MS = 2_000L
 
 private fun Route.toPrikolScreen(): PrikolScreen = when (this) {
     Route.MAIN -> PrikolScreen.MAIN
