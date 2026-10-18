@@ -2,14 +2,6 @@ package com.sber.rofles.ui.shell.components
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
-import androidx.compose.ui.graphics.drawscope.rotate
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -237,58 +229,21 @@ fun SkAvatar(
     @DrawableRes image: Int = R.drawable.sk_avatar_monkey,
     onClick: (() -> Unit)? = null,
     onLongClick: (() -> Unit)? = null,
-    frameColor: Color? = null,
-    @DrawableRes frameBadge: Int? = null,
 ) {
     val clickModifier = if (onClick == null && onLongClick == null) {
         Modifier
     } else {
         Modifier.combinedClickable(onClick = { onClick?.invoke() }, onLongClick = onLongClick)
     }
-    Box(modifier.then(clickModifier), contentAlignment = Alignment.Center) {
-        if (frameColor != null) {
-            val spin by rememberInfiniteTransition(label = "frame").animateFloat(
-                initialValue = 0f,
-                targetValue = 360f,
-                animationSpec = infiniteRepeatable(tween(6_000, easing = LinearEasing)),
-                label = "spin",
-            )
-            Canvas(Modifier.size(size + 14.dp)) {
-                val stroke = 4.dp.toPx()
-                drawCircle(
-                    brush = Brush.radialGradient(listOf(frameColor.copy(alpha = 0.45f), Color.Transparent)),
-                    radius = this.size.minDimension / 2f,
-                )
-                rotate(spin) {
-                    drawCircle(
-                        brush = Brush.sweepGradient(
-                            listOf(frameColor, Color(0xFFFFD54A), Color.White, frameColor, Color(0xFFA6FF2D), frameColor),
-                        ),
-                        radius = this.size.minDimension / 2f - stroke,
-                        style = Stroke(width = stroke),
-                    )
-                }
-            }
-        }
-        Image(
-            painter = painterResource(image),
-            contentDescription = "Аватар",
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .size(size)
-                .clip(CircleShape),
-        )
-        if (frameBadge != null) {
-            Image(
-                painter = painterResource(frameBadge),
-                contentDescription = null,
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .offset(x = 4.dp, y = 4.dp)
-                    .size(28.dp),
-            )
-        }
-    }
+    Image(
+        painter = painterResource(image),
+        contentDescription = "Аватар",
+        contentScale = ContentScale.Crop,
+        modifier = modifier
+            .size(size)
+            .clip(CircleShape)
+            .then(clickModifier),
+    )
 }
 
 data class SkMenuItem(val title: String, val onClick: () -> Unit)
@@ -299,9 +254,7 @@ fun SkTabTopBar(
     title: String? = null,
     onAvatarClick: (() -> Unit)? = null,
     avatarMenu: List<SkMenuItem> = emptyList(),
-    avatarFrameColor: Color? = null,
-    @DrawableRes avatarFrameBadge: Int? = null,
-    besideAvatar: (@Composable () -> Unit)? = null,
+    avatarDecorator: @Composable (avatar: @Composable () -> Unit) -> Unit = { it() },
     actions: @Composable RowScope.() -> Unit = {},
 ) {
     var menuOpen by remember { mutableStateOf(false) }
@@ -313,12 +266,12 @@ fun SkTabTopBar(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box {
-            SkAvatar(
-                onClick = onAvatarClick,
-                onLongClick = if (avatarMenu.isEmpty()) null else ({ menuOpen = true }),
-                frameColor = avatarFrameColor,
-                frameBadge = avatarFrameBadge,
-            )
+            avatarDecorator {
+                SkAvatar(
+                    onClick = onAvatarClick,
+                    onLongClick = if (avatarMenu.isEmpty()) null else ({ menuOpen = true }),
+                )
+            }
             DropdownMenu(
                 expanded = menuOpen,
                 onDismissRequest = { menuOpen = false },
@@ -335,10 +288,6 @@ fun SkTabTopBar(
                     )
                 }
             }
-        }
-        if (besideAvatar != null) {
-            Spacer(Modifier.width(12.dp))
-            besideAvatar()
         }
         Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
             if (title != null) {

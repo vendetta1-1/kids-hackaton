@@ -1,4 +1,4 @@
-package com.sber.rofles.ui.prank
+package com.sber.rofles.prank
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -21,14 +21,14 @@ import javax.inject.Inject
 
 data class AvatarFrameUi(val style: ElementStyle)
 
-data class ShellPrankUi(
+data class PrankRewardsUi(
     val showShakeHint: Boolean = false,
     val frame: AvatarFrameUi? = null,
     val newFrame: ElementStyle? = null,
 )
 
 @HiltViewModel
-class ShellPrankViewModel @Inject constructor(
+class PrankRewardsViewModel @Inject constructor(
     private val progressRepository: PrankProgressRepository,
     albumRepository: AlbumRepository,
     myElementRepository: MyElementRepository,
@@ -36,7 +36,7 @@ class ShellPrankViewModel @Inject constructor(
     clock: Clock,
 ) : ViewModel() {
 
-    val state: StateFlow<ShellPrankUi> = combine(
+    val state: StateFlow<PrankRewardsUi> = combine(
         progressRepository.progress,
         albumRepository.observe(),
         myElementRepository.observe(),
@@ -46,12 +46,12 @@ class ShellPrankViewModel @Inject constructor(
         val completed = AvatarFrames.completed(album.map { it.key })
         val frame = AvatarFrames.pick(completed, mine?.element)
         val fresh = Element.entries.firstOrNull { it in completed && it !in progress.celebratedFrames }
-        ShellPrankUi(
+        PrankRewardsUi(
             showShakeHint = config?.enabled == true && !progress.shakeHintShown,
             frame = frame?.let(styles::get)?.let(::AvatarFrameUi),
             newFrame = fresh?.let(styles::get),
         )
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, ShellPrankUi())
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, PrankRewardsUi())
 
     fun onShake() {
         if (!state.value.showShakeHint) return

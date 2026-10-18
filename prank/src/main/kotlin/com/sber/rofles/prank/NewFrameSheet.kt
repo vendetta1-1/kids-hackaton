@@ -1,4 +1,4 @@
-package com.sber.rofles.ui.prank
+package com.sber.rofles.prank
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -33,11 +33,10 @@ import com.sber.rofles.core.prank.PrankType
 import com.sber.rofles.domain.model.ComboKey
 import com.sber.rofles.domain.model.Element
 import com.sber.rofles.domain.model.ElementStyle
-import com.sber.rofles.ui.shell.components.SkAvatar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NewFrameSheet(style: ElementStyle, isMine: Boolean, onDone: () -> Unit) {
+internal fun NewFrameSheet(style: ElementStyle, isMine: Boolean, onDone: () -> Unit) {
     val color = Color(style.color)
     ModalBottomSheet(
         onDismissRequest = onDone,
@@ -60,7 +59,16 @@ fun NewFrameSheet(style: ElementStyle, isMine: Boolean, onDone: () -> Unit) {
                     .background(Brush.radialGradient(listOf(color.copy(alpha = 0.35f), Color.Transparent)), CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
-                SkAvatar(size = 112.dp, frameColor = color, frameBadge = PrankArt.element(style.element))
+                ElementFrame(style = style, avatarSize = 112.dp) {
+                    Box(
+                        Modifier
+                            .size(112.dp)
+                            .background(PrankPalette.background, CircleShape),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Image(painterResource(PrankArt.highFive), contentDescription = null, modifier = Modifier.size(84.dp))
+                    }
+                }
             }
             Text(
                 "Новая рамка!",

@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.sber.rofles.domain.model.PrankConfig
 import com.sber.rofles.domain.repository.PrankConfigRepository
+import com.sber.rofles.domain.setup.PrankOptions
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -49,7 +50,7 @@ class PrankConfigRepositoryImpl @Inject constructor(
     }
 
     private fun download(): String {
-        val connection = URL(CONFIG_URL).openConnection() as HttpURLConnection
+        val connection = URL(PrankOptions.configUrl).openConnection() as HttpURLConnection
         return try {
             connection.connectTimeout = TIMEOUT_MS
             connection.readTimeout = TIMEOUT_MS
@@ -64,7 +65,6 @@ class PrankConfigRepositoryImpl @Inject constructor(
     private companion object {
         const val TAG = "PrankConfig"
         const val CMS_KEY = "kids_prank_high_five"
-        const val CONFIG_URL = "https://raw.githubusercontent.com/vendetta1-1/kids-hackaton/main/config/$CMS_KEY.json"
         const val ASSET_NAME = "prank_config.json"
         const val CACHE_NAME = "$CMS_KEY.json"
         const val TIMEOUT_MS = 5_000

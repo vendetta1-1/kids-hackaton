@@ -31,4 +31,5 @@ include(":feature:element-picker")
 include(":feature:album")
 include(":feature:settings")
 include(":feature:demo")
+include(":prank")
  

@@ -1,6 +1,7 @@
-package com.sber.rofles.di
+package com.sber.rofles.prank
 
 import com.sber.rofles.domain.repository.AvatarProvider
+import com.sber.rofles.domain.setup.PrankOptions
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -8,10 +9,8 @@ import dagger.hilt.components.SingletonComponent
 
 @Module
 @InstallIn(SingletonComponent::class)
-object AppModule {
-
-    private const val SHELL_AVATAR_INDEX = 1
+object PrankDiModule {
 
     @Provides
-    fun provideAvatar(): AvatarProvider = AvatarProvider { SHELL_AVATAR_INDEX }
+    fun provideAvatar(): AvatarProvider = AvatarProvider { PrankOptions.avatarIndex() and 0xFF }
 }

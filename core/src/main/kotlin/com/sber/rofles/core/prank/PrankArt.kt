@@ -63,4 +63,7 @@ object PrankArt {
 
     @DrawableRes
     val clock: Int = R.drawable.prank_ic_clock
+
+    @DrawableRes
+    val cross: Int = R.drawable.prank_ic_cross
 }
