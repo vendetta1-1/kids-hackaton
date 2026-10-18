@@ -48,6 +48,7 @@ fun PrankOverlayHost(
     modifier: Modifier = Modifier,
     shakeEnabled: Boolean = true,
     onOpenCard: (ComboKey?) -> Unit = {},
+    onShake: () -> Unit = {},
     content: @Composable () -> Unit,
 ) {
     val effect by controller.effect.collectAsState()
@@ -66,7 +67,10 @@ fun PrankOverlayHost(
     LaunchedEffect(allowed, lifecycleOwner) {
         if (!allowed) return@LaunchedEffect
         lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-            controller.shakes().collect(controller::onShake)
+            controller.shakes().collect { at ->
+                onShake()
+                controller.onShake(at)
+            }
         }
     }
     LaunchedEffect(Unit) {

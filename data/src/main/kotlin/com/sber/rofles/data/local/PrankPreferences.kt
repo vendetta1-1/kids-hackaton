@@ -7,9 +7,11 @@ import com.sber.rofles.domain.model.AlbumEntry
 import com.sber.rofles.domain.model.ComboKey
 import com.sber.rofles.domain.model.Element
 import com.sber.rofles.domain.model.MyElement
+import com.sber.rofles.domain.model.PrankProgress
 import com.sber.rofles.domain.model.PrankSettings
 import com.sber.rofles.domain.repository.AlbumRepository
 import com.sber.rofles.domain.repository.MyElementRepository
+import com.sber.rofles.domain.repository.PrankProgressRepository
 import com.sber.rofles.domain.repository.PrankSettingsRepository
 import com.sber.rofles.domain.usecase.AlbumBook
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -136,5 +138,35 @@ class PrankSettingsRepositoryImpl @Inject constructor(
         const val KEY_VIBRATION = "vibration_enabled"
         const val KEY_SOUND = "sound_enabled"
         const val KEY_BT_ONBOARDING = "bt_onboarding_shown"
+    }
+}
+
+@Singleton
+class PrankProgressRepositoryImpl @Inject constructor(
+    private val store: PrankPreferences,
+) : PrankProgressRepository {
+
+    override val progress: Flow<PrankProgress> = store.changes().map { prefs ->
+        PrankProgress(
+            shakeHintShown = prefs.getBoolean(KEY_SHAKE_HINT, false),
+            celebratedFrames = prefs.getStringSet(KEY_FRAMES, emptySet())
+                .orEmpty()
+                .mapNotNull { it.toIntOrNull()?.let(Element::fromId) }
+                .toSet(),
+        )
+    }.distinctUntilChanged()
+
+    override suspend fun markShakeHintShown() = withContext(Dispatchers.IO) {
+        store.prefs.edit(commit = true) { putBoolean(KEY_SHAKE_HINT, true) }
+    }
+
+    override suspend fun markFrameCelebrated(element: Element) = withContext(Dispatchers.IO) {
+        val current = store.prefs.getStringSet(KEY_FRAMES, emptySet()).orEmpty()
+        store.prefs.edit(commit = true) { putStringSet(KEY_FRAMES, current + element.id.toString()) }
+    }
+
+    private companion object {
+        const val KEY_SHAKE_HINT = "shake_hint_shown"
+        const val KEY_FRAMES = "celebrated_frames"
     }
 }

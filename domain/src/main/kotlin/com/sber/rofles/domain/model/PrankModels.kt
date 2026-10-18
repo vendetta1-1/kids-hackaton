@@ -20,6 +20,11 @@ data class PrankSettings(
     val bluetoothOnboardingShown: Boolean = false,
 )
 
+data class PrankProgress(
+    val shakeHintShown: Boolean = false,
+    val celebratedFrames: Set<Element> = emptySet(),
+)
+
 enum class BleCapability { FULL, NO_PERMISSION, OFF, UNSUPPORTED }
 
 sealed interface PrankEvent {

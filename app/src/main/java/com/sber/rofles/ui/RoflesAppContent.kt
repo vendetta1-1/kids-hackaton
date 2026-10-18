@@ -6,6 +6,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -22,7 +23,9 @@ import com.sber.rofles.domain.model.ComboKey
 import com.sber.rofles.feature.album.AlbumScreen
 import com.sber.rofles.feature.demo.DemoScreen
 import com.sber.rofles.feature.settings.SettingsScreen
+import com.sber.rofles.ui.prank.NewFrameSheet
 import com.sber.rofles.ui.prank.PrankOverlayHost
+import com.sber.rofles.ui.prank.ShellPrankViewModel
 import com.sber.rofles.ui.shell.components.SkMenuItem
 import com.sber.rofles.ui.shell.components.SkTab
 import com.sber.rofles.ui.shell.components.SkTabBar
@@ -35,8 +38,13 @@ import com.sber.rofles.ui.shell.transfer.TransferScreen
 import com.sber.rofles.ui.theme.SberKidsTheme
 
 @Composable
-fun RoflesAppContent(prank: PrankViewModel = viewModel()) {
+fun RoflesAppContent(
+    prank: PrankViewModel = viewModel(),
+    shellPrank: ShellPrankViewModel = viewModel(),
+) {
     SberKidsTheme {
+        val shellState by shellPrank.state.collectAsState()
+        val effect by prank.controller.effect.collectAsState()
         val backStack = remember { mutableStateListOf(Route.MAIN) }
         val navigate: (Route) -> Unit = { backStack.add(it) }
         val back: () -> Unit = { if (backStack.size > 1) backStack.removeLastOrNull() }
@@ -75,6 +83,7 @@ fun RoflesAppContent(prank: PrankViewModel = viewModel()) {
             screen = currentRoute.toPrikolScreen(),
             shakeEnabled = currentRoute != Route.DEMO,
             onOpenCard = openCard,
+            onShake = shellPrank::onShake,
         ) {
             Box(Modifier.fillMaxSize()) {
                 NavDisplay(
@@ -87,6 +96,8 @@ fun RoflesAppContent(prank: PrankViewModel = viewModel()) {
                                     onAvatarClick = { navigate(Route.SOUNDS) },
                                     onTransferClick = { navigate(Route.TRANSFER) },
                                     avatarMenu = avatarMenu,
+                                    prank = shellState,
+                                    onDismissShakeHint = shellPrank::dismissShakeHint,
                                 )
                             }
                             Route.PIGGY_BANKS -> NavEntry(key) { PiggyBanksScreen(onAvatarClick = { navigate(Route.SOUNDS) }) }
@@ -115,6 +126,12 @@ fun RoflesAppContent(prank: PrankViewModel = viewModel()) {
                     modifier = Modifier.align(Alignment.BottomCenter),
                 ) {
                     SkTabBar(selected = tab ?: SkTab.HOME, onSelect = selectTab, onAssistantClick = onLogoTap)
+                }
+            }
+            val newFrame = shellState.newFrame
+            if (newFrame != null && effect == null) {
+                NewFrameSheet(newFrame, isMine = shellState.frame?.style?.element == newFrame.element) {
+                    shellPrank.frameCelebrated(newFrame.element)
                 }
             }
         }

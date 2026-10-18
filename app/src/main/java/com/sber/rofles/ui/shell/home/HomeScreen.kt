@@ -1,6 +1,15 @@
 package com.sber.rofles.ui.shell.home
 
 import androidx.compose.animation.AnimatedVisibility
+import com.sber.rofles.ui.prank.ShellPrankUi
+import com.sber.rofles.core.prank.PrankArt
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.RepeatMode
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -60,6 +69,8 @@ fun HomeScreen(
     onTransferClick: () -> Unit,
     avatarMenu: List<SkMenuItem>,
     modifier: Modifier = Modifier,
+    prank: ShellPrankUi = ShellPrankUi(),
+    onDismissShakeHint: () -> Unit = {},
 ) {
     SkScreenBackground(modifier) {
         Column(
@@ -67,13 +78,21 @@ fun HomeScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState()),
         ) {
-            SkTabTopBar(onAvatarClick = onAvatarClick, avatarMenu = avatarMenu) {
+            SkTabTopBar(
+                onAvatarClick = onAvatarClick,
+                avatarMenu = avatarMenu,
+                avatarFrameColor = prank.frame?.style?.color?.let { Color(it) },
+                avatarFrameBadge = prank.frame?.style?.element?.let(PrankArt::element),
+            ) {
                 SkIconButton(icon = R.drawable.sk_ic_qr, onClick = {}, tint = SberKids.colors.blue, contentDescription = "QR")
             }
             Column(
                 Modifier.padding(horizontal = SkGutter),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
+                AnimatedVisibility(visible = prank.showShakeHint) {
+                    ShakeHintCard(onDismiss = onDismissShakeHint)
+                }
                 CardWidget()
                 TransferRow(onTransferClick = onTransferClick)
                 PromoBanner()
@@ -242,5 +261,59 @@ private fun PromoBanner() {
                     .padding(5.dp),
             )
         }
+    }
+}
+
+@Composable
+private fun ShakeHintCard(onDismiss: () -> Unit) {
+    val wiggle by rememberInfiniteTransition(label = "wiggle").animateFloat(
+        initialValue = -14f,
+        targetValue = 14f,
+        animationSpec = infiniteRepeatable(tween(260), RepeatMode.Reverse),
+        label = "angle",
+    )
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .clip(SberKids.shapes.card)
+            .background(SberKids.gradients.primaryButton)
+            .padding(2.dp)
+            .clip(RoundedCornerShape(18.dp))
+            .background(SberKids.colors.surface),
+    ) {
+        Row(
+            Modifier.padding(start = 12.dp, end = 40.dp, top = 12.dp, bottom = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Image(
+                painterResource(PrankArt.shakePhone),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(72.dp)
+                    .graphicsLayer { rotationZ = wiggle },
+            )
+            Spacer(Modifier.width(12.dp))
+            Column {
+                Text("Тряхни телефон!", style = SberKids.typography.title, color = SberKids.colors.textPrimary)
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    "Встряхни рядом с другом, и вы получите общую карточку",
+                    style = SberKids.typography.footnote,
+                    color = SberKids.colors.textTertiary,
+                )
+            }
+        }
+        Icon(
+            painterResource(R.drawable.sk_ic_cross),
+            contentDescription = "Закрыть",
+            tint = SberKids.colors.iconMono,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(8.dp)
+                .size(24.dp)
+                .clip(CircleShape)
+                .clickable(onClick = onDismiss)
+                .padding(6.dp),
+        )
     }
 }
