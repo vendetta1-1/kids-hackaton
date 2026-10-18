@@ -29,6 +29,7 @@ import com.sber.rofles.core.prank.BluetoothTexts
 import com.sber.rofles.core.prank.PrankController
 import com.sber.rofles.core.prank.SheetUi
 import com.sber.rofles.domain.model.BleCapability
+import com.sber.rofles.domain.model.ComboKey
 import com.sber.rofles.domain.model.PrankEvent
 import com.sber.rofles.feature.elementpicker.ElementPickerSheet
 import com.sber.rofles.feature.highfive.BluetoothSheet
@@ -45,6 +46,9 @@ fun PrankOverlayHost(
     controller: PrankController,
     screen: PrikolScreen,
     modifier: Modifier = Modifier,
+    shakeEnabled: Boolean = true,
+    onOpenCard: (ComboKey?) -> Unit = {},
+    onShake: () -> Unit = {},
     content: @Composable () -> Unit,
 ) {
     val effect by controller.effect.collectAsState()
@@ -52,13 +56,21 @@ fun PrankOverlayHost(
     val sheet by controller.sheet.collectAsState()
     val picker by controller.picker.collectAsState()
     val bluetoothTexts by controller.bluetoothTexts.collectAsState()
+    val openCard: (ComboKey?) -> Unit = { key ->
+        effect?.let { controller.dismissEffect(it.id) }
+        toast?.let { controller.dismissToast(it.id) }
+        onOpenCard(key)
+    }
 
-    val allowed = ScreenGuard.allows(screen) && !WindowInsets.isImeVisible
+    val allowed = shakeEnabled && ScreenGuard.allows(screen) && !WindowInsets.isImeVisible
     val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(allowed, lifecycleOwner) {
         if (!allowed) return@LaunchedEffect
         lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-            controller.shakes().collect(controller::onShake)
+            controller.shakes().collect { at ->
+                onShake()
+                controller.onShake(at)
+            }
         }
     }
     LaunchedEffect(Unit) {
@@ -76,7 +88,17 @@ fun PrankOverlayHost(
                 }
                 when (val event = current.event) {
                     is PrankEvent.Solo -> SoloEffect(event.style, current.id, durationMs = EFFECT_MS)
-                    is PrankEvent.HighFive -> HighFiveEffect(event.mine, event.friend, event.combo.title, event.combo.key, event.isNew, current.id, count = event.count, durationMs = EFFECT_MS)
+                    is PrankEvent.HighFive -> HighFiveEffect(
+                        mine = event.mine,
+                        friend = event.friend,
+                        title = event.combo.title,
+                        combo = event.combo.key,
+                        isNew = event.isNew,
+                        effectId = current.id,
+                        count = event.count,
+                        durationMs = EFFECT_MS,
+                        onCardClick = { openCard(event.combo.key) },
+                    )
                     is PrankEvent.Friendship -> HighFiveEffect(event.mine, null, event.title, null, false, current.id, durationMs = EFFECT_MS)
                     else -> Unit
                 }
@@ -87,6 +109,7 @@ fun PrankOverlayHost(
                 PrankToast(
                     toast = current,
                     onDismiss = { controller.dismissToast(current.id) },
+                    onClick = { openCard(current.combo) },
                     modifier = Modifier.align(Alignment.TopCenter),
                 )
             }

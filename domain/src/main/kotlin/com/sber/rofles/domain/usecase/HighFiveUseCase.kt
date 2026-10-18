@@ -18,6 +18,8 @@ import com.sber.rofles.domain.repository.MyElementRepository
 import com.sber.rofles.domain.repository.PrankConfigRepository
 import com.sber.rofles.domain.repository.PrankSettingsRepository
 import com.sber.rofles.domain.repository.Random16
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -26,14 +28,23 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicInteger
 
 class RunHandshake(
     private val transport: HandshakeTransport,
     private val clock: Clock,
     private val tickMs: Long = 100,
+    private val lingerScope: CoroutineScope? = null,
+    private val lingerMs: Long = 0,
 ) {
+    private val generation = AtomicInteger()
+    private var linger: Job? = null
+
     suspend operator fun invoke(my: Payload, params: HandshakeParams): HandshakeResult = coroutineScope {
+        linger?.cancel()
+        val run = generation.incrementAndGet()
         var state: HsState = HsState.Idle
+        var keepConfirming = false
         val events = Channel<HsEvent>(Channel.UNLIMITED)
 
         fun apply(event: HsEvent) {
@@ -42,7 +53,7 @@ class RunHandshake(
             commands.forEach { command ->
                 when (command) {
                     is HsCmd.Advertise -> transport.advertise(HandshakeCodec.encode(command.payload))
-                    HsCmd.Stop -> transport.stop()
+                    HsCmd.Stop -> if (canLinger(next)) keepConfirming = true else transport.stop()
                 }
             }
         }
@@ -68,9 +79,21 @@ class RunHandshake(
             ticks.cancel()
             (state as HsState.Done).result
         } finally {
-            transport.stop()
+            val scope = lingerScope
+            if (keepConfirming && scope != null) {
+                linger = scope.launch {
+                    delay(lingerMs)
+                    if (generation.get() == run) transport.stop()
+                }
+            } else {
+                transport.stop()
+            }
         }
     }
+
+    private fun canLinger(state: HsState): Boolean =
+        lingerScope != null && lingerMs > 0 &&
+            state is HsState.Done && state.result is HandshakeResult.Matched
 }
 
 class HighFiveUseCase(

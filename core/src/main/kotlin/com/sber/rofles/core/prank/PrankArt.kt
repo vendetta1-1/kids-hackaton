@@ -53,6 +53,9 @@ object PrankArt {
     val album: Int = R.drawable.prank_extra_album
 
     @DrawableRes
+    val shakePhone: Int = R.drawable.prank_extra_shake_phone
+
+    @DrawableRes
     val back: Int = R.drawable.prank_ic_back
 
     @DrawableRes

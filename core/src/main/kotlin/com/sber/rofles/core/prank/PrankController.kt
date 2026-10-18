@@ -1,7 +1,9 @@
 package com.sber.rofles.core.prank
 
 import com.sber.rofles.domain.model.BleCapability
+import com.sber.rofles.domain.model.ComboKey
 import com.sber.rofles.domain.model.Element
+import com.sber.rofles.domain.model.MyElement
 import com.sber.rofles.domain.model.PrankEvent
 import com.sber.rofles.domain.repository.Clock
 import com.sber.rofles.domain.repository.MyElementRepository
@@ -10,8 +12,6 @@ import com.sber.rofles.domain.repository.PrankSettingsRepository
 import com.sber.rofles.domain.repository.ShakeSource
 import com.sber.rofles.domain.usecase.HighFiveUseCase
 import com.sber.rofles.domain.usecase.ResolveSkin
-import com.sber.rofles.domain.usecase.SelectElement
-import com.sber.rofles.domain.usecase.SelectResult
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -63,7 +63,7 @@ class PrankController @Inject constructor(
         PickerUi(
             elements = Element.entries.map(skin::element),
             current = mine?.element,
-            canChange = SelectElement.canChange(mine, clock.today()),
+            canChange = true,
             title = config.text("pickerTitle", "Выбери свою стихию"),
             subtitle = config.text("pickerSubtitle", "Когда вы дадите пять, она смешается со стихией друга"),
             done = config.text("pickerDone", "Готово"),
@@ -105,15 +105,27 @@ class PrankController @Inject constructor(
         val sheet = _sheet.value as? SheetUi.ElementPicker
         scope.launch {
             val current = myElementRepository.observe().first()
-            when (val result = SelectElement(current, element, clock.today())) {
-                is SelectResult.Ok -> {
-                    myElementRepository.save(result.element)
-                    _sheet.value = null
-                    if (sheet?.firstTime == true) playSolo(element)
-                }
-                SelectResult.Same -> _sheet.value = null
-                is SelectResult.TooEarly -> Unit
-            }
+            if (current?.element != element) myElementRepository.save(MyElement(element, clock.today()))
+            _sheet.value = null
+            if (sheet?.firstTime == true) playSolo(element)
+        }
+    }
+
+    fun previewSolo() {
+        scope.launch {
+            val element = myElementRepository.observe().first()?.element ?: Element.FIRE
+            playSolo(element)
+        }
+    }
+
+    fun previewHighFive() {
+        scope.launch {
+            val config = configRepository.config.value ?: return@launch
+            val skin = ResolveSkin(config, clock.today())
+            val mine = myElementRepository.observe().first()?.element ?: Element.FIRE
+            val friend = Element.entries.filter { it != mine }.random()
+            val key = ComboKey.of(mine, friend)
+            handle(PrankEvent.HighFive(skin.combo(key), skin.element(mine), skin.element(friend), isNew = true, count = 1))
         }
     }
 

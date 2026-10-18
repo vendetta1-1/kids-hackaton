@@ -9,6 +9,15 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
+import com.sber.rofles.domain.usecase.AvatarFrames
+import com.sber.rofles.domain.model.Element
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -36,6 +45,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -65,10 +75,18 @@ import com.sber.rofles.core.prank.PrankType
 fun AlbumScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    focusCardId: String? = null,
+    onFocusConsumed: () -> Unit = {},
 ) {
     val viewModel: AlbumViewModel = hiltViewModel()
     val state by viewModel.state.collectAsState()
-    var selectedId by rememberSaveable { mutableStateOf<String?>(null) }
+    var selectedId by rememberSaveable { mutableStateOf(focusCardId) }
+    LaunchedEffect(focusCardId) {
+        if (focusCardId != null) {
+            selectedId = focusCardId
+            onFocusConsumed()
+        }
+    }
     val selected = (state as? AlbumUiState.Ready)
         ?.cards
         ?.firstOrNull { it.key.id == selectedId && it.isOpen }
@@ -132,6 +150,9 @@ private fun AlbumGrid(state: AlbumUiState.Ready, onCardClick: (AlbumCard) -> Uni
         item(span = { GridItemSpan(maxLineSpan) }) {
             AlbumProgress(opened = state.opened, total = state.total, caption = state.texts.progress)
         }
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            FramesStrip(state.cards)
+        }
         items(state.cards, key = { it.key.id }) { card ->
             if (card.isOpen) OpenedCard(card = card, onClick = { onCardClick(card) }) else LockedCard(card)
         }
@@ -184,6 +205,71 @@ private fun AlbumProgress(opened: Int, total: Int, caption: String) {
                 .align(Alignment.TopEnd)
                 .offset(x = 4.dp)
                 .size(128.dp),
+        )
+    }
+}
+
+@Composable
+private fun FramesStrip(cards: List<AlbumCard>) {
+    val opened = cards.filter { it.isOpen }.map { it.key }
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .padding(bottom = 8.dp)
+            .clip(PrankPalette.card)
+            .background(PrankPalette.surface)
+            .padding(horizontal = 16.dp, vertical = 16.dp),
+    ) {
+        Text("Рамки за стихии", style = PrankType.title)
+        Text(
+            "Собери 6 карточек одной стихии и получи рамку для аватара",
+            style = PrankType.footnote.copy(color = PrankPalette.secondary),
+            modifier = Modifier.padding(top = 2.dp, bottom = 12.dp),
+        )
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Element.entries.forEach { element ->
+                val progress = AvatarFrames.progress(opened, element)
+                FrameProgress(element, progress, AvatarFrames.combosPerElement, cards.firstOrNull { it.elementA?.element == element }?.colorA)
+            }
+        }
+    }
+}
+
+@Composable
+private fun FrameProgress(element: Element, progress: Int, total: Int, color: Long?) {
+    val ring = color?.let(::argbColor) ?: PrankPalette.green
+    val done = progress >= total
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+            Canvas(Modifier.fillMaxSize()) {
+                val stroke = 3.dp.toPx()
+                drawCircle(PrankPalette.outline, radius = size.minDimension / 2f - stroke / 2f, style = Stroke(stroke))
+                drawArc(
+                    color = if (done) PrankPalette.green else ring,
+                    startAngle = -90f,
+                    sweepAngle = 360f * progress / total,
+                    useCenter = false,
+                    topLeft = Offset(stroke / 2f, stroke / 2f),
+                    size = Size(size.width - stroke, size.height - stroke),
+                    style = Stroke(stroke, cap = StrokeCap.Round),
+                )
+            }
+            Image(
+                painterResource(PrankArt.element(element)),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(34.dp)
+                    .graphicsLayer { alpha = if (progress == 0) 0.45f else 1f },
+            )
+        }
+        Text(
+            if (done) "Есть!" else "$progress/$total",
+            style = PrankType.footnote.copy(
+                color = if (done) PrankPalette.green else PrankPalette.tertiary,
+                fontSize = 12.sp,
+                fontWeight = if (done) FontWeight.Bold else FontWeight.Medium,
+            ),
+            modifier = Modifier.padding(top = 4.dp),
         )
     }
 }

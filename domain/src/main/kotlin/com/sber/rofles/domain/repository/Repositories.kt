@@ -3,8 +3,10 @@ package com.sber.rofles.domain.repository
 import com.sber.rofles.domain.model.AlbumEntry
 import com.sber.rofles.domain.model.BleCapability
 import com.sber.rofles.domain.model.ComboKey
+import com.sber.rofles.domain.model.Element
 import com.sber.rofles.domain.model.MyElement
 import com.sber.rofles.domain.model.PrankConfig
+import com.sber.rofles.domain.model.PrankProgress
 import com.sber.rofles.domain.model.PrankSettings
 import com.sber.rofles.domain.model.ShakeParams
 import kotlinx.coroutines.flow.Flow
@@ -40,6 +42,14 @@ interface PrankSettingsRepository {
     suspend fun setSoundEnabled(enabled: Boolean)
 
     suspend fun setBluetoothOnboardingShown()
+}
+
+interface PrankProgressRepository {
+    val progress: Flow<PrankProgress>
+
+    suspend fun markShakeHintShown()
+
+    suspend fun markFrameCelebrated(element: Element)
 }
 
 interface ShakeSource {

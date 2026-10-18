@@ -9,7 +9,7 @@
   },
   "handshake": {
     "durationMs": 3000,
-    "settleMs": 600,
+    "settleMs": 300,
     "rssiMin": -55,
     "rssiSamples": 3
   },

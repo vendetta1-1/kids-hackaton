@@ -15,11 +15,16 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
 object PrankModule {
+
+    private const val CONFIRM_LINGER_MS = 1_500L
 
     @Provides
     @Singleton
@@ -38,7 +43,12 @@ object PrankModule {
         myElementRepository = myElement,
         albumRepository = album,
         transport = transport,
-        runHandshake = RunHandshake(transport, clock),
+        runHandshake = RunHandshake(
+            transport = transport,
+            clock = clock,
+            lingerScope = CoroutineScope(SupervisorJob() + Dispatchers.Default),
+            lingerMs = CONFIRM_LINGER_MS,
+        ),
         avatar = avatar,
         clock = clock,
         random = random,

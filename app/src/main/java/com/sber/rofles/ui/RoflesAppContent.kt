@@ -6,6 +6,10 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -15,10 +19,13 @@ import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.ui.NavDisplay
 import com.sber.rofles.core.effect.PrikolScreen
 import com.sber.rofles.core.prank.PrankViewModel
+import com.sber.rofles.domain.model.ComboKey
 import com.sber.rofles.feature.album.AlbumScreen
 import com.sber.rofles.feature.demo.DemoScreen
 import com.sber.rofles.feature.settings.SettingsScreen
+import com.sber.rofles.ui.prank.NewFrameSheet
 import com.sber.rofles.ui.prank.PrankOverlayHost
+import com.sber.rofles.ui.prank.ShellPrankViewModel
 import com.sber.rofles.ui.shell.components.SkMenuItem
 import com.sber.rofles.ui.shell.components.SkTab
 import com.sber.rofles.ui.shell.components.SkTabBar
@@ -31,8 +38,13 @@ import com.sber.rofles.ui.shell.transfer.TransferScreen
 import com.sber.rofles.ui.theme.SberKidsTheme
 
 @Composable
-fun RoflesAppContent(prank: PrankViewModel = viewModel()) {
+fun RoflesAppContent(
+    prank: PrankViewModel = viewModel(),
+    shellPrank: ShellPrankViewModel = viewModel(),
+) {
     SberKidsTheme {
+        val shellState by shellPrank.state.collectAsState()
+        val effect by prank.controller.effect.collectAsState()
         val backStack = remember { mutableStateListOf(Route.MAIN) }
         val navigate: (Route) -> Unit = { backStack.add(it) }
         val back: () -> Unit = { if (backStack.size > 1) backStack.removeLastOrNull() }
@@ -49,8 +61,30 @@ fun RoflesAppContent(prank: PrankViewModel = viewModel()) {
         )
 
         val currentRoute = backStack.lastOrNull() ?: Route.MAIN
+        var albumFocus by remember { mutableStateOf<String?>(null) }
+        val openCard: (ComboKey?) -> Unit = { key ->
+            albumFocus = key?.id
+            if (backStack.lastOrNull() != Route.ALBUM) navigate(Route.ALBUM)
+        }
 
-        PrankOverlayHost(controller = prank.controller, screen = currentRoute.toPrikolScreen()) {
+        val logoTaps = remember { mutableListOf<Long>() }
+        val onLogoTap: () -> Unit = {
+            val now = System.currentTimeMillis()
+            logoTaps.removeAll { now - it > SECRET_TAPS_WINDOW_MS }
+            logoTaps += now
+            if (logoTaps.size >= SECRET_TAPS) {
+                logoTaps.clear()
+                navigate(Route.DEMO)
+            }
+        }
+
+        PrankOverlayHost(
+            controller = prank.controller,
+            screen = currentRoute.toPrikolScreen(),
+            shakeEnabled = currentRoute != Route.DEMO,
+            onOpenCard = openCard,
+            onShake = shellPrank::onShake,
+        ) {
             Box(Modifier.fillMaxSize()) {
                 NavDisplay(
                     backStack = backStack,
@@ -62,6 +96,8 @@ fun RoflesAppContent(prank: PrankViewModel = viewModel()) {
                                     onAvatarClick = { navigate(Route.SOUNDS) },
                                     onTransferClick = { navigate(Route.TRANSFER) },
                                     avatarMenu = avatarMenu,
+                                    prank = shellState,
+                                    onDismissShakeHint = shellPrank::dismissShakeHint,
                                 )
                             }
                             Route.PIGGY_BANKS -> NavEntry(key) { PiggyBanksScreen(onAvatarClick = { navigate(Route.SOUNDS) }) }
@@ -69,9 +105,15 @@ fun RoflesAppContent(prank: PrankViewModel = viewModel()) {
                             Route.CONTENT -> NavEntry(key) { ContentScreen(onAvatarClick = { navigate(Route.SOUNDS) }) }
                             Route.TRANSFER -> NavEntry(key) { TransferScreen(onBack = back) }
                             Route.SOUNDS -> NavEntry(key) { SoundsScreen(onBack = back) }
-                            Route.ALBUM -> NavEntry(key) { AlbumScreen(onBack = back) }
+                            Route.ALBUM -> NavEntry(key) {
+                                AlbumScreen(
+                                    onBack = back,
+                                    focusCardId = albumFocus,
+                                    onFocusConsumed = { albumFocus = null },
+                                )
+                            }
                             Route.SETTINGS -> NavEntry(key) { SettingsScreen() }
-                            Route.DEMO -> NavEntry(key) { DemoScreen() }
+                            Route.DEMO -> NavEntry(key) { DemoScreen(onBack = back) }
                         }
                     },
                 )
@@ -83,12 +125,21 @@ fun RoflesAppContent(prank: PrankViewModel = viewModel()) {
                     exit = slideOutVertically { it },
                     modifier = Modifier.align(Alignment.BottomCenter),
                 ) {
-                    SkTabBar(selected = tab ?: SkTab.HOME, onSelect = selectTab)
+                    SkTabBar(selected = tab ?: SkTab.HOME, onSelect = selectTab, onAssistantClick = onLogoTap)
+                }
+            }
+            val newFrame = shellState.newFrame
+            if (newFrame != null && effect == null) {
+                NewFrameSheet(newFrame, isMine = shellState.frame?.style?.element == newFrame.element) {
+                    shellPrank.frameCelebrated(newFrame.element)
                 }
             }
         }
     }
 }
+
+private const val SECRET_TAPS = 5
+private const val SECRET_TAPS_WINDOW_MS = 2_000L
 
 private fun Route.toPrikolScreen(): PrikolScreen = when (this) {
     Route.MAIN -> PrikolScreen.MAIN
