@@ -4,8 +4,6 @@ import androidx.annotation.DrawableRes
 import androidx.compose.ui.graphics.Color
 import com.sber.rofles.R
 
-/** Константы ленты «Контент» — без реальной логики, всё как в макете. */
-
 internal enum class ContentKind(val label: String, @DrawableRes val icon: Int) {
     Video("видео", R.drawable.content_ic_play),
     Course("курс", R.drawable.content_ic_play),
@@ -17,7 +15,6 @@ internal data class ContentItem(
     val kind: ContentKind,
     val title: String,
     val likes: String = "999 тыс",
-    /** null — полоски прогресса нет. */
     val progress: Float? = null,
 )
 

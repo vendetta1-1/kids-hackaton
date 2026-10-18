@@ -42,6 +42,7 @@ import com.sber.rofles.ui.shell.components.SkCellGap
 import com.sber.rofles.ui.shell.components.SkCellGroup
 import com.sber.rofles.ui.shell.components.SkGutter
 import com.sber.rofles.ui.shell.components.SkIconButton
+import com.sber.rofles.ui.shell.components.SkMenuItem
 import com.sber.rofles.ui.shell.components.SkMoneyText
 import com.sber.rofles.ui.shell.components.SkScreenBackground
 import com.sber.rofles.ui.shell.components.SkTabBarInset
@@ -49,16 +50,15 @@ import com.sber.rofles.ui.shell.components.SkTabTopBar
 import com.sber.rofles.ui.shell.components.skGroupShape
 import com.sber.rofles.ui.theme.SberKids
 
-/** Баланс в оболочке — константа, банковского функционала нет. */
 private const val BALANCE_RUBLES = "800"
 private const val BALANCE_KOPECKS = "55"
 private const val SPASIBO_BONUSES = "123"
 
-/** Главный экран СберKids (упрощённо, по макету «Главный_Light»). */
 @Composable
 fun HomeScreen(
     onAvatarClick: () -> Unit,
     onTransferClick: () -> Unit,
+    avatarMenu: List<SkMenuItem>,
     modifier: Modifier = Modifier,
 ) {
     SkScreenBackground(modifier) {
@@ -67,7 +67,7 @@ fun HomeScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState()),
         ) {
-            SkTabTopBar(onAvatarClick = onAvatarClick) {
+            SkTabTopBar(onAvatarClick = onAvatarClick, avatarMenu = avatarMenu) {
                 SkIconButton(icon = R.drawable.sk_ic_qr, onClick = {}, tint = SberKids.colors.blue, contentDescription = "QR")
             }
             Column(
@@ -89,7 +89,6 @@ fun HomeScreen(
     }
 }
 
-/** «Детская карта 800,55 ₽» + склеенная ячейка «Бонусы Спасибо». */
 @Composable
 private fun CardWidget() {
     val colors = SberKids.colors
@@ -139,7 +138,6 @@ private fun CardWidget() {
     }
 }
 
-/** «Скинуть денег» (широкая карточка со стрелкой) и «Себе» (аватар). */
 @Composable
 private fun TransferRow(onTransferClick: () -> Unit) {
     val colors = SberKids.colors
@@ -186,7 +184,6 @@ private fun TransferRow(onTransferClick: () -> Unit) {
     }
 }
 
-/** Рекламный баннер «Узнай свои сильные стороны» — закрывается крестиком. */
 @Composable
 private fun PromoBanner() {
     var visible by rememberSaveable { mutableStateOf(true) }

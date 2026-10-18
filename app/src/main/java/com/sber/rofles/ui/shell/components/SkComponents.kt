@@ -4,6 +4,7 @@ import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,11 +28,15 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.animateColorAsState
@@ -51,16 +56,10 @@ import androidx.compose.ui.unit.dp
 import com.sber.rofles.R
 import com.sber.rofles.ui.theme.SberKids
 
-/** Боковой отступ контента на всех экранах макета. */
 val SkGutter = 16.dp
 
-/** Зазор между «склеенными» ячейками в группе. */
 val SkCellGap = 2.dp
 
-/**
- * Фон экрана: светло-серый + размытые розово-жёлтые пятна сверху, как в макете.
- * Пятна — радиальные градиенты, чтобы не зависеть от Modifier.blur (API 31+).
- */
 @Composable
 fun SkScreenBackground(
     modifier: Modifier = Modifier,
@@ -79,7 +78,6 @@ fun SkScreenBackground(
             Blob(colors.blobPink, size = 360.dp, x = 260.dp, y = 180.dp)
         }
         content()
-        // Подложка под статус-бар, чтобы прокрученный контент не лез под часы и иконки.
         Box(
             Modifier
                 .fillMaxWidth()
@@ -105,11 +103,9 @@ private fun Blob(color: Color, size: Dp, x: Dp, y: Dp) {
     )
 }
 
-/** Кликабельность с обычной рябью; null — без клика. */
 fun Modifier.skClickable(onClick: (() -> Unit)?): Modifier =
     if (onClick == null) this else this.clickable(onClick = onClick)
 
-/** Белая карточка с радиусом 20. */
 @Composable
 fun SkCard(
     modifier: Modifier = Modifier,
@@ -127,7 +123,6 @@ fun SkCard(
     )
 }
 
-/** Форма ячейки в группе: внешние углы 20, «склеенные» — 4. */
 fun skGroupShape(index: Int, count: Int): Shape {
     val big = 20.dp
     val small = 4.dp
@@ -136,10 +131,6 @@ fun skGroupShape(index: Int, count: Int): Shape {
     return RoundedCornerShape(topStart = top, topEnd = top, bottomStart = bottom, bottomEnd = bottom)
 }
 
-/**
- * Группа ячеек, разделённых зазором 2dp (так в макете устроены списки).
- * [items] — содержимое каждой ячейки, форма выдаётся по позиции.
- */
 @Composable
 fun SkCellGroup(
     modifier: Modifier = Modifier,
@@ -150,7 +141,6 @@ fun SkCellGroup(
     }
 }
 
-/** Стандартная ячейка: иконка 24, заголовок, подзаголовок, что-то справа. Высота 72. */
 @Composable
 fun SkCell(
     title: String,
@@ -205,7 +195,6 @@ fun SkCell(
     }
 }
 
-/** Квадратная белая кнопка-иконка 56×56, радиус 20 (QR, «+», «назад»). */
 @Composable
 fun SkIconButton(
     @DrawableRes icon: Int,
@@ -231,14 +220,19 @@ fun SkIconButton(
     }
 }
 
-/** Аватар 56 в шапке. Долгий тап оставлен на будущее (вход в прикол), сейчас не используется. */
 @Composable
 fun SkAvatar(
     modifier: Modifier = Modifier,
     size: Dp = 56.dp,
     @DrawableRes image: Int = R.drawable.sk_avatar_monkey,
     onClick: (() -> Unit)? = null,
+    onLongClick: (() -> Unit)? = null,
 ) {
+    val clickModifier = if (onClick == null && onLongClick == null) {
+        Modifier
+    } else {
+        Modifier.combinedClickable(onClick = { onClick?.invoke() }, onLongClick = onLongClick)
+    }
     Image(
         painter = painterResource(image),
         contentDescription = "Аватар",
@@ -246,21 +240,21 @@ fun SkAvatar(
         modifier = modifier
             .size(size)
             .clip(CircleShape)
-            .skClickable(onClick),
+            .then(clickModifier),
     )
 }
 
-/**
- * Шапка вкладок: аватар слева, необязательный заголовок по центру, кнопки справа.
- * Высота как в макете — 56 + отступ от статус-бара.
- */
+data class SkMenuItem(val title: String, val onClick: () -> Unit)
+
 @Composable
 fun SkTabTopBar(
     modifier: Modifier = Modifier,
     title: String? = null,
     onAvatarClick: (() -> Unit)? = null,
+    avatarMenu: List<SkMenuItem> = emptyList(),
     actions: @Composable RowScope.() -> Unit = {},
 ) {
+    var menuOpen by remember { mutableStateOf(false) }
     Row(
         modifier
             .fillMaxWidth()
@@ -268,7 +262,28 @@ fun SkTabTopBar(
             .padding(start = 24.dp, end = 24.dp, top = 16.dp, bottom = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        SkAvatar(onClick = onAvatarClick)
+        Box {
+            SkAvatar(
+                onClick = onAvatarClick,
+                onLongClick = if (avatarMenu.isEmpty()) null else ({ menuOpen = true }),
+            )
+            DropdownMenu(
+                expanded = menuOpen,
+                onDismissRequest = { menuOpen = false },
+                shape = SberKids.shapes.card,
+                containerColor = SberKids.colors.surface,
+            ) {
+                avatarMenu.forEach { item ->
+                    DropdownMenuItem(
+                        text = { Text(item.title, style = SberKids.typography.body, color = SberKids.colors.textPrimary) },
+                        onClick = {
+                            menuOpen = false
+                            item.onClick()
+                        },
+                    )
+                }
+            }
+        }
         Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
             if (title != null) {
                 Text(title, style = SberKids.typography.navTitle, color = SberKids.colors.textPrimary)
@@ -278,7 +293,6 @@ fun SkTabTopBar(
     }
 }
 
-/** Шапка вложенного экрана: кнопка «назад» 56 и заголовок по центру. */
 @Composable
 fun SkBackTopBar(
     title: String,
@@ -313,7 +327,6 @@ fun SkBackTopBar(
     }
 }
 
-/** Большая кнопка 56dp: градиент голубой → салатовый (или любой brush/цвет). */
 @Composable
 fun SkPrimaryButton(
     text: String,
@@ -341,7 +354,6 @@ fun SkPrimaryButton(
     }
 }
 
-/** Сплошная салатовая кнопка («Скинуть»). */
 @Composable
 fun SkLimeButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
     SkPrimaryButton(
@@ -352,7 +364,6 @@ fun SkLimeButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifie
     )
 }
 
-/** Переключатель в стиле макета: 40×24, мятно-зелёный во включённом состоянии. */
 @Composable
 fun SkSwitch(
     checked: Boolean,
@@ -382,7 +393,6 @@ fun SkSwitch(
     }
 }
 
-/** Полоска прогресса копилки: зелёная на светлом треке. */
 @Composable
 fun SkProgressBar(progress: Float, modifier: Modifier = Modifier, color: Color = SberKids.colors.green) {
     Box(
@@ -402,7 +412,6 @@ fun SkProgressBar(progress: Float, modifier: Modifier = Modifier, color: Color =
     }
 }
 
-/** Заголовок секции («Чем заняться», «Топ 5 за неделю»). */
 @Composable
 fun SkSectionTitle(text: String, modifier: Modifier = Modifier) {
     Text(
@@ -413,7 +422,6 @@ fun SkSectionTitle(text: String, modifier: Modifier = Modifier) {
     )
 }
 
-/** Сумма «800,55 ₽» с серыми копейками, как в макете. */
 @Composable
 fun SkMoneyText(
     rubles: String,
@@ -437,10 +445,8 @@ fun SkMoneyText(
     )
 }
 
-/** Отступ снизу под плавающий таббар. */
 val SkTabBarInset = 120.dp
 
-/** Обёртка колонки экрана с отступами по бокам. */
 @Composable
 fun SkGutterColumn(
     modifier: Modifier = Modifier,
@@ -454,7 +460,6 @@ fun SkGutterColumn(
     )
 }
 
-/** Пустой центр для превью и заглушек. */
 @Composable
 fun SkCenteredText(text: String, modifier: Modifier = Modifier) {
     Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

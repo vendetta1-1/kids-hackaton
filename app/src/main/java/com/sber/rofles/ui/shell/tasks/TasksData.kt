@@ -4,7 +4,6 @@ import androidx.annotation.DrawableRes
 import androidx.compose.ui.graphics.Color
 import com.sber.rofles.R
 
-/** Цвет «плашки» иконки дела: фон кружка и сама иконка — как в макете. */
 internal enum class TaskTone(val background: Color, val icon: Color) {
     Yellow(Color(0xFFFFF5C2), Color(0xFFFFC300)),
     Orange(Color(0xFFFFEAE0), Color(0xFFFF8E00)),
@@ -21,7 +20,6 @@ internal data class TaskItem(
 
 internal enum class TaskLevel(val label: String) { Easy("Просто"), Hard("Сложно") }
 
-/** «Сложно» — тексты сняты с макета «Главная дел — сложно». */
 internal val HardTasks = listOf(
     TaskItem("Погуляю с собакой", R.drawable.tasks_ic_paw, TaskTone.Yellow),
     TaskItem("Уберусь в комнате", R.drawable.tasks_ic_home, TaskTone.Orange),
@@ -44,7 +42,6 @@ internal val HardTasks = listOf(
     TaskItem("Буду ложиться спать вовремя неделю", R.drawable.tasks_ic_moon, TaskTone.Pink),
 )
 
-/** «Просто» — в макете нет, придуманы в том же стиле. */
 internal val EasyTasks = listOf(
     TaskItem("Заправлю кровать", R.drawable.tasks_ic_bed, TaskTone.Pink),
     TaskItem("Полью цветы", R.drawable.tasks_ic_drop, TaskTone.Green),

@@ -72,16 +72,12 @@ private val ImageShape = RoundedCornerShape(12.dp)
 private val ProgressColor = Color(0xFFB385FF)
 private val CardTitleStyle = TextStyle(fontSize = 15.sp, lineHeight = 20.sp, fontWeight = FontWeight.Bold)
 
-// ---------- Карусель-баннер ----------
-
-/** Бесконечная лента: стартуем с середины огромного диапазона, страницу берём по модулю. */
 private const val LOOP_PAGES = 10_000
 
 @Composable
 internal fun TopCarousel(items: List<TopBannerItem>, modifier: Modifier = Modifier) {
     if (items.isEmpty()) return
     val cardWidth = 296.dp
-    // Стартуем с «Луаны» (индекс 1), чтобы по краям торчали соседи.
     val startPage = LOOP_PAGES / 2 - (LOOP_PAGES / 2) % items.size + 1
     val pagerState = rememberPagerState(initialPage = startPage) { LOOP_PAGES }
     BoxWithConstraints(modifier.fillMaxWidth()) {
@@ -91,9 +87,7 @@ internal fun TopCarousel(items: List<TopBannerItem>, modifier: Modifier = Modifi
             pageSize = PageSize.Fixed(cardWidth),
             contentPadding = PaddingValues(horizontal = side),
             pageSpacing = 16.dp,
-            // Соседи уже собраны и картинки декодированы — без подтормаживания на первом свайпе.
             beyondViewportPageCount = 2,
-            // Один свайп — ровно одна карточка, даже при сильном броске.
             flingBehavior = PagerDefaults.flingBehavior(
                 state = pagerState,
                 pagerSnapDistance = PagerSnapDistance.atMost(1),
@@ -122,7 +116,6 @@ private fun TopBannerCard(item: TopBannerItem) {
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize(),
         )
-        // Затемнения сверху (под тег) и снизу (под заголовок), как в макете.
         Box(
             Modifier
                 .fillMaxSize()
@@ -161,8 +154,6 @@ private fun TopBannerCard(item: TopBannerItem) {
         )
     }
 }
-
-// ---------- Истории ----------
 
 @Composable
 internal fun StoriesRow(items: List<StoryItem>, modifier: Modifier = Modifier) {
@@ -204,8 +195,6 @@ private fun Story(story: StoryItem) {
         )
     }
 }
-
-// ---------- Плеер «Эфир Звука» ----------
 
 @Composable
 internal fun StreamPlayerCard(modifier: Modifier = Modifier) {
@@ -262,7 +251,6 @@ internal fun StreamPlayerCard(modifier: Modifier = Modifier) {
     }
 }
 
-/** Волна эфира: синусоида с градиентом, «бежит», пока играет. */
 @Composable
 private fun SoundWave(playing: Boolean, modifier: Modifier = Modifier) {
     val transition = rememberInfiniteTransition(label = "wave")
@@ -289,8 +277,6 @@ private fun SoundWave(playing: Boolean, modifier: Modifier = Modifier) {
         drawPath(path, brush, style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round))
     }
 }
-
-// ---------- Чипы-фильтры ----------
 
 @Composable
 internal fun CategoryChips(
@@ -340,8 +326,6 @@ private fun CategoryChip(item: ContentCategory, selected: Boolean, onClick: () -
     }
 }
 
-// ---------- Карточки контента ----------
-
 @Composable
 private fun KindLabel(kind: ContentKind) {
     val c = SberKids.colors.textSecondary
@@ -379,7 +363,6 @@ private fun LikesRow(item: ContentItem, modifier: Modifier = Modifier) {
     }
 }
 
-/** Большая карточка ленты 343: картинка 164, тип, заголовок, лайки и прогресс. */
 @Composable
 internal fun FeedCard(item: ContentItem, modifier: Modifier = Modifier) {
     Column(
@@ -414,7 +397,6 @@ internal fun FeedCard(item: ContentItem, modifier: Modifier = Modifier) {
     }
 }
 
-/** Маленькая карточка 180×262 для горизонтальных подборок. */
 @Composable
 private fun SmallCard(item: ContentItem, modifier: Modifier = Modifier) {
     Column(
@@ -448,8 +430,6 @@ private fun SmallCard(item: ContentItem, modifier: Modifier = Modifier) {
         LikesRow(item)
     }
 }
-
-// ---------- Баннер «Исполни мечту» ----------
 
 @Composable
 internal fun DreamBanner(onClose: () -> Unit, modifier: Modifier = Modifier) {
@@ -510,8 +490,6 @@ internal fun DreamBanner(onClose: () -> Unit, modifier: Modifier = Modifier) {
     }
 }
 
-// ---------- Топ 5 за неделю ----------
-
 @Composable
 internal fun Top5Block(items: List<ContentItem>, modifier: Modifier = Modifier) {
     Column(modifier.fillMaxWidth()) {
@@ -526,7 +504,6 @@ internal fun Top5Block(items: List<ContentItem>, modifier: Modifier = Modifier) 
             contentPadding = PaddingValues(end = SkGutter),
         ) {
             itemsIndexed(items) { index, item ->
-                // Ширина шага 204: карточка 180 + отступ 24, цифра заезжает на карточку слева.
                 Box(Modifier.width(204.dp).height(278.dp)) {
                     SmallCard(item, Modifier.padding(start = 16.dp, top = 16.dp))
                     SprayNumber(index + 1, Modifier.offset(x = (-24).dp))
@@ -547,7 +524,6 @@ private fun SprayNumber(number: Int, modifier: Modifier = Modifier) {
         if (res != null) {
             Image(painterResource(res), contentDescription = "$number место", modifier = Modifier.fillMaxSize())
         } else {
-            // Для 3–5 в макете нет «граффити» — рисуем похожую цифру текстом.
             Text(
                 "$number",
                 style = TextStyle(
@@ -562,8 +538,6 @@ private fun SprayNumber(number: Int, modifier: Modifier = Modifier) {
         }
     }
 }
-
-// ---------- Алгоритмика ----------
 
 @Composable
 internal fun AlgorithmicsBlock(items: List<ContentItem>, modifier: Modifier = Modifier) {

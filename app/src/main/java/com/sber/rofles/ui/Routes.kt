@@ -2,28 +2,20 @@ package com.sber.rofles.ui
 
 import com.sber.rofles.ui.shell.components.SkTab
 
-/** Типизированные маршруты приложения (Nav3: ключи стека). */
 enum class Route {
-    // Оболочка СберKids: вкладки нижнего меню.
     MAIN,
     PIGGY_BANKS,
     TASKS,
     CONTENT,
 
-    // Оболочка: вложенные экраны.
     TRANSFER,
     SOUNDS,
 
-    // Прикол.
-    SOLO,
-    HIGH_FIVE,
-    ELEMENT_PICKER,
     ALBUM,
     SETTINGS,
     DEMO,
 }
 
-/** Вкладка таббара, которой соответствует маршрут; null — таббар не показываем. */
 val Route.tab: SkTab?
     get() = when (this) {
         Route.MAIN -> SkTab.HOME

@@ -46,7 +46,6 @@ private val SegmentSelected = Color(0xFFEBEFFF)
 private val SegmentInactiveText = Color(0xFF8189BA)
 private val CellGap = 16.dp
 
-/** Вкладка «Дела»: интро-карточка, переключатель «Просто / Сложно» и список дел. */
 @Composable
 fun TasksScreen(
     onAvatarClick: () -> Unit,
@@ -190,7 +189,6 @@ private fun TaskCell(task: TaskItem, onClick: () -> Unit, modifier: Modifier = M
     }
 }
 
-/** Иконка дела: цветной «скруглённый квадрат» 48 в модуле 56 и иконка 24. */
 @Composable
 private fun TaskIcon(task: TaskItem) {
     val shape = RoundedCornerShape(20.dp)

@@ -58,10 +58,6 @@ private val destinations = listOf(
     Destination("Другой банк", "СБП", "₽", Color(0xFF4DB0FF)),
 )
 
-/**
- * «Скинуть денег» — упрощённый экран перевода по макету «Перевод, если 1 карта».
- * Контрольный денежный экран: здесь прикол не работает. Перевод ничего не делает.
- */
 @Composable
 fun TransferScreen(
     onBack: () -> Unit,
@@ -86,7 +82,6 @@ fun TransferScreen(
                     .padding(horizontal = SkGutter),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                // Откуда: СберКарта и баланс.
                 SkCard(Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(horizontal = 24.dp, vertical = 20.dp)) {
                         Text("СберКарта", style = type.footnote, color = colors.textSecondary)
@@ -107,7 +102,6 @@ fun TransferScreen(
                     }
                 }
 
-                // Кому: контакт + куда зачислить.
                 SkCard(Modifier.fillMaxWidth()) {
                     Column {
                         Row(
@@ -141,7 +135,6 @@ fun TransferScreen(
                     }
                 }
 
-                // Сумма.
                 SkCard(Modifier.fillMaxWidth()) {
                     BasicTextField(
                         value = amount,

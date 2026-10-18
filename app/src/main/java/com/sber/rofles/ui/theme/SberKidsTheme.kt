@@ -15,7 +15,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-/** Цвета СберKids — сняты с макета Figma («Карта экранов»). */
 @Immutable
 data class SkColors(
     val background: Color = Color(0xFFF2F5F7),
@@ -35,7 +34,6 @@ data class SkColors(
     val purple: Color = Color(0xFF8B5CF6),
 )
 
-/** Скругления макета: карточка 20, «склейка» ячеек 4, таббар 24. */
 @Immutable
 data class SkShapes(
     val card: RoundedCornerShape = RoundedCornerShape(20.dp),
@@ -44,7 +42,6 @@ data class SkShapes(
     val small: RoundedCornerShape = RoundedCornerShape(12.dp),
 )
 
-/** Типографика. Фирменный SB Sans не публичный — берём системный шрифт с теми же весами и кеглями. */
 @Immutable
 data class SkTypography(
     val balance: TextStyle = TextStyle(fontSize = 32.sp, lineHeight = 36.sp, fontWeight = FontWeight.Bold),
@@ -58,12 +55,9 @@ data class SkTypography(
     val button: TextStyle = TextStyle(fontSize = 17.sp, lineHeight = 22.sp, fontWeight = FontWeight.Bold),
 )
 
-/** Градиенты кнопок и баннеров из макета. */
 @Immutable
 data class SkGradients(
-    /** «Создать копилку», «Круто!», «Посмотреть все» — голубой → салатовый. */
     val primaryButton: Brush = Brush.horizontalGradient(listOf(Color(0xFF3ED9FF), Color(0xFFA6FF2D))),
-    /** Рекламный баннер на Главном. */
     val banner: Brush = Brush.horizontalGradient(listOf(Color(0xFFBB66F8), Color(0xFF4411A6))),
 )
 
@@ -72,7 +66,6 @@ val LocalSkShapes = staticCompositionLocalOf { SkShapes() }
 val LocalSkTypography = staticCompositionLocalOf { SkTypography() }
 val LocalSkGradients = staticCompositionLocalOf { SkGradients() }
 
-/** Доступ к токенам: `SberKids.colors.background` и т. д. */
 object SberKids {
     val colors: SkColors @Composable get() = LocalSkColors.current
     val shapes: SkShapes @Composable get() = LocalSkShapes.current
@@ -80,7 +73,6 @@ object SberKids {
     val gradients: SkGradients @Composable get() = LocalSkGradients.current
 }
 
-/** Тема оболочки СберKids. Приложение всегда светлое, как в макете. */
 @Composable
 fun SberKidsTheme(content: @Composable () -> Unit) {
     val colors = SkColors()

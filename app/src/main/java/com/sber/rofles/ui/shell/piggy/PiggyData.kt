@@ -3,12 +3,9 @@ package com.sber.rofles.ui.shell.piggy
 import androidx.annotation.DrawableRes
 import com.sber.rofles.R
 
-/** Как выглядит картинка копилки слева в ячейке. */
 internal sealed interface PiggyImage {
-    /** Иконка-свинка на цветной плашке 80×80. */
     data class Icon(@DrawableRes val icon: Int, val tint: Long?, val background: Long) : PiggyImage
 
-    /** Фото цели 104×104. */
     data class Photo(@DrawableRes val image: Int) : PiggyImage
 }
 
@@ -16,7 +13,6 @@ internal data class PiggyBank(
     val title: String,
     val rubles: String,
     val kopecks: String? = null,
-    /** «из 3 000 ₽»; null — копилка без цели (без прогресса). */
     val goal: String? = null,
     val progress: Float = 0f,
     val image: PiggyImage,
@@ -34,7 +30,6 @@ internal const val PiggyTotalRubles = "16 158"
 internal const val PiggyYearRate = "11%"
 internal const val PiggyArchiveCount = "6 копилок"
 
-/** Копилки над зелёной карточкой «накопил». */
 internal val PiggyBanksTop = listOf(
     PiggyBank(
         title = "Копилка фаворит",
@@ -52,10 +47,8 @@ internal val PiggyBanksTop = listOf(
     ),
 )
 
-/** Накопленная мечта (зелёная карточка). */
 internal const val PiggyDoneWithdraw = "Снять 7 989,32 ₽"
 
-/** Копилки под зелёной карточкой. */
 internal val PiggyBanksBottom = listOf(
     PiggyBank(
         title = "Неоновая вывеска и зеркало Hello Kitty",

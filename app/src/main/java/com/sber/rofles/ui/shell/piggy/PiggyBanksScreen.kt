@@ -59,7 +59,6 @@ private val PlusBlue = Color(0xFF4DB0FF)
 private val SumStyle = TextStyle(fontSize = 20.sp, lineHeight = 24.sp, fontWeight = FontWeight.Bold)
 private val CellTitleStyle = TextStyle(fontSize = 15.sp, lineHeight = 20.sp, fontWeight = FontWeight.Medium)
 
-/** Вкладка «Копилки». */
 @Composable
 fun PiggyBanksScreen(
     onAvatarClick: () -> Unit,
@@ -113,7 +112,6 @@ fun PiggyBanksScreen(
     }
 }
 
-/** Карточка «16 158 ₽ / Всего на копилках» + «Годовой процент» и свинья, торчащая вверх-вправо. */
 @Composable
 private fun TotalBlock() {
     val colors = SberKids.colors
@@ -165,7 +163,6 @@ private fun TotalBlock() {
     }
 }
 
-/** Свинья с монетками 140×176 — собрана из PNG и векторных монет, как слои в макете. */
 @Composable
 private fun PiggyIllustration(modifier: Modifier = Modifier) {
     Box(
@@ -191,7 +188,6 @@ private fun Layer(res: Int, x: Dp, y: Dp, w: Dp, h: Dp) {
     )
 }
 
-/** Ячейка копилки 343×128: картинка 104 слева, сумма, прогресс и название справа. */
 @Composable
 private fun PiggyBankCell(bank: PiggyBank) {
     val colors = SberKids.colors
@@ -270,7 +266,6 @@ private fun PiggyImageModule(image: PiggyImage) {
     }
 }
 
-/** Зелёная карточка «Ура! Ты накопил на мечту» с кнопкой «Снять». */
 @Composable
 private fun DreamDoneCell() {
     Box(
@@ -332,7 +327,6 @@ private fun DreamDoneCell() {
     }
 }
 
-/** «На что копят другие»: белая карточка, горизонтальная карусель 224×324 и «Посмотреть все». */
 @Composable
 private fun OthersCarousel(modifier: Modifier = Modifier) {
     Column(

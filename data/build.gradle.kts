@@ -8,6 +8,5 @@ android {
 
 dependencies {
     implementation(project(":domain"))
-    implementation(libs.androidx.datastore.preferences)
     testImplementation(libs.bundles.test.unit)
 }

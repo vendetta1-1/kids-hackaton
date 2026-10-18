@@ -32,7 +32,6 @@ import androidx.compose.ui.unit.dp
 import com.sber.rofles.R
 import com.sber.rofles.ui.theme.SberKids
 
-/** Вкладки нижнего меню СберKids. */
 enum class SkTab(val title: String, @DrawableRes val icon: Int) {
     HOME("Главный", R.drawable.sk_ic_home),
     PIGGY_BANKS("Копилки", R.drawable.sk_ic_piggy),
@@ -40,10 +39,6 @@ enum class SkTab(val title: String, @DrawableRes val icon: Int) {
     CONTENT("Контент", R.drawable.sk_ic_star),
 }
 
-/**
- * Плавающее нижнее меню: белая плашка 88dp, радиус 24, четыре вкладки и лапка-ассистент по центру.
- * Активная вкладка — зелёная, с розовыми «штрихами» как в макете.
- */
 @Composable
 fun SkTabBar(
     selected: SkTab,

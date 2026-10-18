@@ -21,7 +21,6 @@ import com.sber.rofles.ui.shell.components.SkScreenBackground
 import com.sber.rofles.ui.shell.components.SkTabBarInset
 import com.sber.rofles.ui.shell.components.SkTabTopBar
 
-/** Вкладка «Контент» — лента: карусель, истории, эфир, фильтры, карточки и подборки. */
 @Composable
 fun ContentScreen(
     onAvatarClick: () -> Unit,

@@ -4,12 +4,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sber.rofles.R
 import com.sber.rofles.ui.shell.components.SkBackTopBar
 import com.sber.rofles.ui.shell.components.SkCell
@@ -18,19 +20,14 @@ import com.sber.rofles.ui.shell.components.SkGutter
 import com.sber.rofles.ui.shell.components.SkScreenBackground
 import com.sber.rofles.ui.shell.components.SkSwitch
 
-/**
- * «Профиль → Звуки и вибрации» по макету + строка «Дай пять».
- * Пока переключатели держат только локальное состояние: связь с настройками прикола
- * подключим, когда будет готов сам прикол.
- */
 @Composable
 fun SoundsScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    viewModel: SoundsViewModel = viewModel(),
 ) {
+    val settings by viewModel.settings.collectAsState()
     var sounds by rememberSaveable { mutableStateOf(true) }
-    var vibration by rememberSaveable { mutableStateOf(true) }
-    var highFive by rememberSaveable { mutableStateOf(true) }
 
     SkScreenBackground(modifier, blobs = false) {
         Column(Modifier.fillMaxSize()) {
@@ -52,8 +49,8 @@ fun SoundsScreen(
                             title = "Вибрации",
                             shape = shape,
                             icon = R.drawable.sk_ic_vib,
-                            onClick = { vibration = !vibration },
-                            trailing = { SkSwitch(vibration, { vibration = it }) },
+                            onClick = { viewModel.setVibration(!settings.vibrationEnabled) },
+                            trailing = { SkSwitch(settings.vibrationEnabled, viewModel::setVibration) },
                         )
                     },
                     { shape ->
@@ -62,8 +59,8 @@ fun SoundsScreen(
                             subtitle = "Тряхни телефон рядом с другом",
                             shape = shape,
                             icon = R.drawable.sk_ic_star,
-                            onClick = { highFive = !highFive },
-                            trailing = { SkSwitch(highFive, { highFive = it }) },
+                            onClick = { viewModel.setHighFive(!settings.highFiveEnabled) },
+                            trailing = { SkSwitch(settings.highFiveEnabled, viewModel::setHighFive) },
                         )
                     },
                 ),
