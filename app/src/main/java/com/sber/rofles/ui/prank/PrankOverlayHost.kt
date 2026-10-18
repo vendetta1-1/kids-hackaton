@@ -76,13 +76,13 @@ fun PrankOverlayHost(
                 }
                 when (val event = current.event) {
                     is PrankEvent.Solo -> SoloEffect(event.style, current.id, durationMs = EFFECT_MS)
-                    is PrankEvent.HighFive -> HighFiveEffect(event.mine, event.friend, event.combo.title, event.combo.key, event.isNew, current.id, durationMs = EFFECT_MS)
+                    is PrankEvent.HighFive -> HighFiveEffect(event.mine, event.friend, event.combo.title, event.combo.key, event.isNew, current.id, count = event.count, durationMs = EFFECT_MS)
                     is PrankEvent.Friendship -> HighFiveEffect(event.mine, null, event.title, null, false, current.id, durationMs = EFFECT_MS)
                     else -> Unit
                 }
             }
         }
-        toast?.let { current ->
+        toast?.takeIf { effect == null }?.let { current ->
             key(current.id) {
                 PrankToast(
                     toast = current,

@@ -297,7 +297,7 @@ private fun AlbumUnavailable() {
         ) {
             Image(painterResource(PrankArt.album), contentDescription = null, modifier = Modifier.size(120.dp))
             Text("Альбом пока недоступен", style = PrankType.headline, textAlign = TextAlign.Center)
-            Text("Загляни чуть позже — карточки уже в пути", style = PrankType.secondary, textAlign = TextAlign.Center)
+            Text("Загляни чуть позже, карточки уже в пути", style = PrankType.secondary, textAlign = TextAlign.Center)
         }
     }
 }

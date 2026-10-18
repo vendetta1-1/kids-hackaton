@@ -24,6 +24,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.foundation.shape.CircleShape
@@ -445,7 +447,8 @@ fun SkMoneyText(
     )
 }
 
-val SkTabBarInset = 120.dp
+val SkTabBarInset: Dp
+    @Composable get() = 128.dp + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
 
 @Composable
 fun SkGutterColumn(
