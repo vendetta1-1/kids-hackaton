@@ -9,6 +9,4 @@ android {
 dependencies {
     implementation(project(":domain"))
     testImplementation(libs.bundles.test.unit)
-    testImplementation(libs.mockk)
-    testImplementation(libs.kotlinx.coroutines.test)
 }
