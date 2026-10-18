@@ -3,6 +3,8 @@ package com.sber.rofles.feature.highfive
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -80,6 +82,7 @@ fun HighFiveEffect(
     modifier: Modifier = Modifier,
     count: Int = 1,
     durationMs: Int = 3_000,
+    onCardClick: (() -> Unit)? = null,
 ) {
     val myColor = mine.color.toColor()
     val friendColor = friend?.color?.toColor() ?: FriendshipColor
@@ -162,7 +165,12 @@ fun HighFiveEffect(
                     scaleY = scale
                     translationY = (bob + (toastOffset - cardOffset).value * exitEased) * density
                     alpha = if (p < IMPACT) 0f else 1f - exitEased
-                },
+                }
+                .clickable(
+                    enabled = onCardClick != null,
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                ) { onCardClick?.invoke() },
         ) {
             val showFront = { t() >= (CARD_IN + FLIP_END) / 2f }
             CardBack(myColor, friendColor, Modifier.graphicsLayer { alpha = if (showFront()) 0f else 1f })

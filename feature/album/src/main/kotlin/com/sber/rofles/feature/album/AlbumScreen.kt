@@ -36,6 +36,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -65,10 +66,18 @@ import com.sber.rofles.core.prank.PrankType
 fun AlbumScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    focusCardId: String? = null,
+    onFocusConsumed: () -> Unit = {},
 ) {
     val viewModel: AlbumViewModel = hiltViewModel()
     val state by viewModel.state.collectAsState()
-    var selectedId by rememberSaveable { mutableStateOf<String?>(null) }
+    var selectedId by rememberSaveable { mutableStateOf(focusCardId) }
+    LaunchedEffect(focusCardId) {
+        if (focusCardId != null) {
+            selectedId = focusCardId
+            onFocusConsumed()
+        }
+    }
     val selected = (state as? AlbumUiState.Ready)
         ?.cards
         ?.firstOrNull { it.key.id == selectedId && it.isOpen }

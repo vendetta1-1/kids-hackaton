@@ -107,9 +107,11 @@ object HandshakeStateMachine {
         return state.copy(advertised = desired) to listOf(HsCmd.Advertise(desired))
     }
 
+    private const val CONFIRMED_RSSI_MARGIN = 10
+
     private fun closeNonces(state: HsState.Active, params: HandshakeParams): List<Int> =
         state.candidates
-            .filterValues { isClose(it, params) }
+            .filter { (nonce, candidate) -> isClose(candidate, params, confirmedMe = nonce in state.confirmedBy) }
             .keys
             .sorted()
 
@@ -121,7 +123,7 @@ object HandshakeStateMachine {
                 Peer(nonce, c.element, c.avatar)
             }
 
-    private fun isClose(candidate: Candidate, params: HandshakeParams): Boolean {
+    private fun isClose(candidate: Candidate, params: HandshakeParams, confirmedMe: Boolean): Boolean {
         if (candidate.rssi.size < params.rssiSamples) return false
         val sorted = candidate.rssi.sorted()
         val median = if (sorted.size % 2 == 1) {
@@ -129,6 +131,7 @@ object HandshakeStateMachine {
         } else {
             (sorted[sorted.size / 2 - 1] + sorted[sorted.size / 2]) / 2.0
         }
-        return median >= params.rssiMin
+        val threshold = if (confirmedMe) params.rssiMin - CONFIRMED_RSSI_MARGIN else params.rssiMin
+        return median >= threshold
     }
 }
